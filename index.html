@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mijn uren — Bon Bini</title>
+<style>
+  :root{
+    --inkt:#12141a; --inkt2:#1c1f28; --lijn:#2b303c; --lijn2:#e3e6ec;
+    --papier:#f6f7f9; --wit:#ffffff; --grijs:#6b7280; --grijs2:#9aa1ad;
+    --groen:#0f7b52; --groen-l:#e6f4ee; --oranje:#a2600d; --oranje-l:#fdf3e3;
+    --paars:#5b2fa8; --paars-l:#efe9fb; --rood:#a4262c;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--papier); color:var(--inkt);
+    font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+    padding-bottom:90px;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:0 14px}
+
+  /* kop */
+  header{background:var(--inkt);color:#fff;padding:18px 0 16px}
+  header .wrap{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap}
+  .prod{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#8c93a3;margin:0 0 6px}
+  h1{font-size:21px;margin:0;font-weight:650;letter-spacing:-.01em}
+  .functie{color:#aeb5c2;font-size:13px;margin-top:2px}
+  .contract{margin-left:auto;text-align:right;background:#232734;border:1px solid #333949;
+    border-radius:10px;padding:9px 12px;min-width:184px}
+  .contract .l{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#8c93a3}
+  .contract .v{font-size:17px;font-weight:650;font-variant-numeric:tabular-nums}
+  .contract .sub{font-size:11px;color:#8c93a3;margin-top:3px}
+  .uitcontract{font-size:10.5px;color:#6f7686;margin-top:6px;display:flex;align-items:center;gap:4px}
+
+  /* weken */
+  nav.weken{background:var(--wit);border-bottom:1px solid var(--lijn2);position:sticky;top:0;z-index:20}
+  nav.weken .wrap{display:flex;gap:4px;overflow-x:auto;padding-top:8px;padding-bottom:0}
+  nav.weken button{
+    border:0;background:none;font:inherit;font-size:13.5px;font-weight:550;color:var(--grijs);
+    padding:9px 12px 10px;border-bottom:2.5px solid transparent;cursor:pointer;white-space:nowrap}
+  nav.weken button.aan{color:var(--inkt);border-bottom-color:var(--inkt)}
+  nav.weken button .pil{display:inline-block;min-width:16px;height:16px;line-height:16px;border-radius:8px;
+    background:var(--lijn2);color:var(--grijs);font-size:10.5px;margin-left:6px;padding:0 5px;font-weight:650}
+  nav.weken button.klaar .pil{background:var(--groen-l);color:var(--groen)}
+
+  /* weekkop */
+  .weekkop{display:flex;align-items:baseline;gap:10px;margin:18px 2px 9px}
+  .weekkop h2{font-size:15px;margin:0;font-weight:650}
+  .weekkop .per{color:var(--grijs);font-size:12.5px}
+
+  /* dagrijen */
+  .dag{background:var(--wit);border:1px solid var(--lijn2);border-radius:11px;margin-bottom:7px;overflow:hidden}
+  .dag.open{border-color:var(--inkt);box-shadow:0 4px 20px rgba(18,20,26,.09)}
+  .rij{display:flex;align-items:center;gap:11px;padding:12px 13px;cursor:pointer;user-select:none}
+  .rij:hover{background:#fafbfc}
+  .dd{flex:0 0 46px;font-size:11px;font-weight:700;letter-spacing:.03em;color:var(--grijs);
+    background:var(--papier);border-radius:6px;text-align:center;padding:5px 0}
+  .dinfo{flex:1;min-width:0}
+  .dtitel{font-weight:600;font-size:14.5px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .dsub{color:var(--grijs);font-size:12.5px;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .badge{font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    padding:2.5px 6px;border-radius:5px}
+  .b-nacht{background:var(--paars-l);color:var(--paars)}
+  .b-zon{background:var(--oranje-l);color:var(--oranje)}
+  .b-vrij{background:var(--lijn2);color:var(--grijs)}
+  .status{flex:0 0 auto;text-align:right}
+  .status .bed{font-weight:650;font-variant-numeric:tabular-nums;font-size:14.5px}
+  .status .st{font-size:11.5px;color:var(--grijs)}
+  .status.leeg .st{color:var(--oranje);font-weight:600}
+  .chev{flex:0 0 12px;color:var(--grijs2);transition:transform .15s}
+  .dag.open .chev{transform:rotate(90deg)}
+
+  /* formulier */
+  .form{border-top:1px solid var(--lijn2);padding:14px 13px 15px;display:none}
+  .dag.open .form{display:block}
+  .callsheetregel{background:var(--papier);border-radius:8px;padding:9px 11px;font-size:12.5px;
+    color:var(--grijs);margin-bottom:14px;display:flex;gap:8px;align-items:flex-start}
+  .callsheetregel b{color:var(--inkt);font-weight:600}
+  .veldgroep{margin-bottom:15px}
+  .veldgroep>.kop{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--grijs2);
+    font-weight:700;margin-bottom:7px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:9px}
+  label.v{display:block}
+  label.v .n{display:block;font-size:11.5px;color:var(--grijs);margin-bottom:3px}
+  input[type=text],input[type=number],textarea,select{
+    width:100%;border:1px solid #d5d9e0;border-radius:8px;padding:9px 10px;font:inherit;font-size:15px;
+    background:var(--wit);color:var(--inkt);font-variant-numeric:tabular-nums}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--inkt);box-shadow:0 0 0 3px rgba(18,20,26,.07)}
+  input.auto{background:#fbfcfd;color:#4b5261}
+  textarea{min-height:56px;resize:vertical;font-size:14px}
+  .vink{display:flex;align-items:center;gap:8px;font-size:13.5px;margin-top:2px;cursor:pointer}
+  .vink input{width:18px;height:18px;accent-color:var(--inkt)}
+
+  /* berekening */
+  .berek{background:var(--inkt2);color:#fff;border-radius:10px;padding:12px 13px;margin-top:4px}
+  .berek .r{display:flex;justify-content:space-between;gap:10px;padding:4px 0;font-size:13.5px;
+    font-variant-numeric:tabular-nums}
+  .berek .r .l{color:#b9c0cd}
+  .berek .r .l small{display:block;color:#79808f;font-size:11px;margin-top:1px}
+  .berek .r.tot{border-top:1px solid #363c4b;margin-top:7px;padding-top:9px;font-weight:700;font-size:16px}
+  .berek .r.nul .l,.berek .r.nul span{color:#6b7280}
+  .melding{background:#3a2d20;border-left:3px solid #d08a2e;color:#f0d9b5;font-size:12.5px;
+    padding:8px 10px;border-radius:6px;margin-top:9px}
+  .melding.vrij{background:#20303a;border-left-color:#4a90b8;color:#c6dced}
+
+  .acties{display:flex;gap:9px;margin-top:13px}
+  button.knop{flex:1;border:0;border-radius:9px;padding:12px;font:inherit;font-size:14.5px;font-weight:650;cursor:pointer}
+  button.prim{background:var(--inkt);color:#fff}
+  button.prim:active{background:#000}
+  button.sec{background:var(--wit);color:var(--inkt);border:1px solid #d5d9e0;flex:0 0 auto;padding:12px 16px}
+
+  /* voet */
+  .voet{position:fixed;left:0;right:0;bottom:0;background:var(--wit);border-top:1px solid var(--lijn2);
+    padding:11px 0 max(11px,env(safe-area-inset-bottom));z-index:30}
+  .voet .wrap{display:flex;align-items:center;gap:12px}
+  .voet .l{font-size:11.5px;color:var(--grijs);letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+  .voet .v{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+  .voet .sub{font-size:11.5px;color:var(--grijs)}
+  .voet button{margin-left:auto;border:0;background:var(--inkt);color:#fff;border-radius:9px;
+    padding:11px 17px;font:inherit;font-weight:650;font-size:14px;cursor:pointer}
+  .voet button:disabled{background:#c8ccd4;cursor:default}
+
+  /* naamkiezer */
+  .kies{position:fixed;inset:0;background:var(--inkt);z-index:60;display:flex;align-items:center;justify-content:center;padding:20px}
+  .kies .kaart{background:var(--wit);border-radius:14px;padding:22px;max-width:400px;width:100%}
+  .kies h3{margin:0 0 4px;font-size:18px}
+  .kies p{margin:0 0 15px;color:var(--grijs);font-size:13.5px}
+  .kies select{font-size:16px;padding:11px}
+  .testnoot{margin-top:14px;background:var(--oranje-l);color:#6d4208;border-radius:8px;padding:10px 12px;font-size:12.5px}
+  .verborgen{display:none !important}
+  /* tabs */
+  nav.tabs{background:var(--inkt);padding:0 0 2px}
+  nav.tabs .wrap{display:flex;gap:18px}
+  nav.tabs button{border:0;background:none;font:inherit;font-size:13px;font-weight:600;color:#8c93a3;
+    padding:0 0 9px;border-bottom:2.5px solid transparent;cursor:pointer}
+  nav.tabs button.aan{color:#fff;border-bottom-color:#fff}
+
+  /* weekstatus */
+  .weekstatus{display:flex;align-items:center;gap:9px;background:var(--wit);border:1px solid var(--lijn2);
+    border-radius:11px;padding:11px 13px;margin:14px 0 9px;font-size:13.5px}
+  .weekstatus .vink{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:800;flex:0 0 auto}
+  .weekstatus.akkoord{border-color:#bfe0d2;background:var(--groen-l)}
+  .weekstatus.akkoord .vink{background:var(--groen);color:#fff}
+  .weekstatus.ingediend{border-color:#e2d4b8;background:var(--oranje-l)}
+  .weekstatus.ingediend .vink{background:var(--oranje);color:#fff}
+  .weekstatus b{font-weight:650}
+  .weekstatus .bed{margin-left:auto;font-weight:700;font-variant-numeric:tabular-nums}
+
+  /* teller nachten en zondagen */
+  .teller{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}
+  .teller .t{background:var(--wit);border:1px solid var(--lijn2);border-radius:9px;padding:8px 11px;font-size:12.5px;color:var(--grijs)}
+  .teller .t b{color:var(--inkt);font-weight:650}
+
+  .slot{background:var(--lijn2);color:var(--grijs);border-radius:8px;padding:9px 11px;font-size:12.5px;margin-top:10px}
+
+  /* laadscherm en fouten */
+  .laad{position:fixed;inset:0;background:var(--inkt);color:#fff;z-index:70;display:flex;
+    align-items:center;justify-content:center;padding:24px;text-align:center;font-size:14px}
+  .laad .k{max-width:400px}
+  .laad h3{margin:0 0 8px;font-size:18px}
+  .laad p{margin:0;color:#aeb5c2;font-size:13.5px}
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;background:var(--inkt2);color:#fff;
+    padding:11px 16px;border-radius:9px;font-size:13.5px;z-index:80;box-shadow:0 8px 30px rgba(0,0,0,.25);
+    max-width:calc(100% - 28px)}
+  .toast.fout{background:var(--rood)}
+
+  /* mijn gegevens */
+  .gegevens{padding:16px 0 8px}
+  .gegevens .blok{background:var(--wit);border:1px solid var(--lijn2);border-radius:11px;padding:14px 13px;margin-bottom:10px}
+  .gegevens .blok>.kop{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--grijs2);
+    font-weight:700;margin-bottom:10px}
+  .gegevens .uitleg{color:var(--grijs);font-size:12.5px;margin:0 0 14px}
+</style>
+</head>
+<body>
+
+<div class="laad" id="laad">
+  <div class="k">
+    <h3 id="laadTitel">Even je gegevens ophalen</h3>
+    <p id="laadTekst">Een momentje.</p>
+  </div>
+</div>
+
+<header>
+  <div class="wrap">
+    <div>
+      <p class="prod" id="prodnaam"></p>
+      <h1 id="hNaam"></h1>
+      <div class="functie" id="hFunctie"></div>
+    </div>
+    <div class="contract">
+      <div class="l">Dagprijs</div>
+      <div class="v" id="hDag"></div>
+      <div class="sub">uurprijs <span id="hUur"></span> · dagprijs ÷ 10</div>
+      <div class="uitcontract">↳ automatisch uit je contract</div>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs">
+  <div class="wrap">
+    <button id="tabUren" class="aan" onclick="kiesTab('uren')">Mijn uren</button>
+    <button id="tabGegevens" onclick="kiesTab('gegevens')">Mijn gegevens</button>
+  </div>
+</nav>
+
+<nav class="weken" id="weeknav"><div class="wrap" id="weekbalk"></div></nav>
+
+<div class="wrap" id="inhoud"></div>
+<div class="wrap gegevens verborgen" id="gegevensblok"></div>
+
+<div class="voet" id="voet">
+  <div class="wrap">
+    <div>
+      <div class="l">Week <span id="vWeek"></span> extra</div>
+      <div class="v" id="vTotaal">€ 0,00</div>
+      <div class="sub" id="vSub"></div>
+    </div>
+    <button id="vKnop" onclick="dienIn()">Week indienen</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   Urenportaal Bon Bini, Jetzt Geht's Los
+   Alle gegevens komen van /api/portaal; die functie praat met Airtable.
+   De code in de link is het record-id van het crewlid.
+   ============================================================ */
+
+var TOKEN = new URLSearchParams(location.search).get('t') || '';
+var DATA = null, RS = null, IK = null;
+var INVOER = {};          // datum -> ingevulde velden
+var WEKEN = {};           // weeknummer -> weekstaat
+var ACTIEVEWEEK = null, OPEN = null, TAB = 'uren';
+
+var WEEKDAG = ['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
+var MAAND = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+
+var VERVOER = [
+  'Eigen auto',
+  'Eigen auto met materiaal',
+  'Huurauto of bus van de productie',
+  'Meegereden',
+  'Openbaar vervoer'
+];
+function geenKm(v){ return v==='Huurauto of bus van de productie' || v==='Meegereden' || v==='Openbaar vervoer'; }
+
+/* ---------------------------------------------------------- rekenhulpjes */
+
+function pt(t){var m=/^(\d{1,2})[:.](\d{2})$/.exec(String(t||'').trim());return m?(+m[1])*60+(+m[2]):null;}
+function isNacht(c){c=((c%1440)+1440)%1440;return c>=RS.nachtStartMin&&c<RS.nachtEindMin;}
+function r2(n){return Math.round(n*100)/100;}
+function eur(n){return '€ '+(n||0).toLocaleString('nl-NL',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function u(n){return (n||0).toLocaleString('nl-NL',{minimumFractionDigits:2,maximumFractionDigits:2})+' u';}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+/* komma en punt allebei goed als decimaalteken */
+function getal(x){
+  if(x==null||x==='') return 0;
+  var s=String(x).trim().replace(/[^0-9.,\-]/g,'');
+  if(s.indexOf(',')>-1) s=s.replace(/\./g,'').replace(',','.');
+  var n=parseFloat(s);
+  return isNaN(n)?0:n;
+}
+
+/* Reisuren uit de vier tijden. Laat je aankomst op de set of vertrek van de set leeg,
+   dan rekenen we met je start- en eindtijd. Zo hoef je meestal alleen te vullen hoe
+   laat je van huis ging en hoe laat je weer thuis was. */
+/* Eén reisstuk kan nooit langer dan 12 uur duren; komt dat eruit, dan staan de tijden
+   in de verkeerde volgorde. We rekenen zo'n stuk niet mee en melden het, anders staat
+   er zomaar een paar honderd euro te veel in de weekstaat. */
+function reisSpan(a,b){
+  var x=pt(a), y=pt(b);
+  if(x==null||y==null) return null;
+  var v=y-x; if(v<0) v+=1440;
+  var uren=v/60;
+  return uren>12 ? -1 : uren;
+}
+function reisurenUit(d){
+  var aankomstSet = pt(d.reisHeenAankomst)!=null ? d.reisHeenAankomst : d.start;
+  var vertrekSet  = pt(d.reisTerugVertrek)!=null ? d.reisTerugVertrek : d.eind;
+  var heen=reisSpan(d.reisHeenVertrek,aankomstSet), terug=reisSpan(vertrekSet,d.reisTerugThuis);
+  return r2(Math.max(0,heen||0)+Math.max(0,terug||0));
+}
+function reisFouten(d){
+  var aankomstSet = pt(d.reisHeenAankomst)!=null ? d.reisHeenAankomst : d.start;
+  var vertrekSet  = pt(d.reisTerugVertrek)!=null ? d.reisTerugVertrek : d.eind;
+  var uit=[];
+  if(reisSpan(d.reisHeenVertrek,aankomstSet)===-1)
+    uit.push('Je heenreis komt uit op meer dan 12 uur. Controleer je vertrektijd en je starttijd; deze reis telt nu niet mee.');
+  if(reisSpan(vertrekSet,d.reisTerugThuis)===-1)
+    uit.push('Je terugreis komt uit op meer dan 12 uur. Meestal ligt je aankomst thuis dan vóór het vertrek van de set. Deze reis telt nu niet mee.');
+  return uit;
+}
+
+function berekenDag(inp){
+  var D=getal(inp.dagprijs), uur=D/10;
+  var start=pt(inp.start), eind=pt(inp.eind);
+  var onset=0,nO=0;
+  if(start!=null&&eind!=null){
+    if(eind<=start) eind+=1440;
+    onset=eind-start;
+    for(var m=start;m<eind;m++) if(isNacht(m)) nO++;
+  }
+  var p=RS.lunchVast, dagOnset=onset-nO;
+  var pD=Math.min(p,Math.max(0,dagOnset)), pN=Math.max(0,p-pD);
+  var nachtW=Math.max(0,nO-pN);
+  var sD=pD,sN=pN,w=[];
+  if(start!=null&&eind!=null){
+    for(var m2=start;m2<eind;m2++){
+      var n=isNacht(m2);
+      if(!n&&sD>0){sD--;continue;}
+      if(n&&sN>0){sN--;continue;}
+      w.push(n);
+    }
+  }
+  var dm=RS.dagdrempelUren*60, t1=RS.otTier1MaxUren*60;
+  var otE=0,naE=0,otMin=0,nBetaald=0;
+  for(var i=0;i<w.length;i++){
+    if(i>=dm){
+      var k=i-dm;
+      otE+=((k<t1?RS.otTier1Pct:RS.otTier2Pct)/100)*uur/60;
+      otMin++;
+    } else if(w[i]){
+      naE+=((RS.nachtPct-100)/100)*uur/60;
+      nBetaald++;
+    }
+  }
+  var R=Math.max(0,getal(inp.reisuren));
+  var reE = inp.groot
+    ? (RS.grootMateriaalReisPct/100)*uur*R
+    : (RS.reistijdOtPct/100)*uur*Math.max(0,R-RS.reistijdVrijUren);
+  var zoE = inp.zondag ? ((RS.zondagPct-100)/100)*D : 0;
+  var kmB = Math.max(0,getal(inp.km))*(getal(inp.kmTarief)||RS.kmPersonen);
+  return {uur:uur, gewerkteUren:r2(w.length/60), otUren:r2(otMin/60), otE:r2(otE),
+          nachtUren:r2(nachtW/60), nachtUrenBetaald:r2(nBetaald/60), naE:r2(naE),
+          reisuren:r2(R), reE:r2(reE), kmB:r2(kmB), zoE:r2(zoE)};
+}
+
+function toTs(datum,min,plusDag){return Date.parse(datum+'T00:00:00Z')+(min+(plusDag?1440:0))*60000;}
+
+function berekenTurnaround(vorige,huidige,dagprijs){
+  if(!vorige) return {uren:0,bedrag:0};
+  var thuis=pt(vorige.reisTerugThuis); if(thuis==null) thuis=pt(vorige.eind);
+  var vertrek=pt(huidige.reisHeenVertrek); if(vertrek==null) vertrek=pt(huidige.start);
+  if(thuis==null||vertrek==null) return {uren:0,bedrag:0};
+  var eindV=pt(vorige.eind), startV=pt(vorige.start);
+  var over = eindV!=null&&startV!=null&&eindV<=startV;
+  var t1=toTs(vorige.datum,thuis,over||(eindV!=null&&thuis<eindV));
+  var t2=toTs(huidige.datum,vertrek,false);
+  var rust=(t2-t1)/3600000;
+  if(rust<=0) return {uren:0,bedrag:0};
+  var gat=Math.max(0,Math.round((Date.parse(huidige.datum)-Date.parse(vorige.datum))/86400000)-1);
+  var norm=Math.min(RS.turnaroundMinUren+gat*24, RS.weekendTurnaroundUren);
+  var tekort=Math.max(0,norm-rust);
+  if(tekort<=0) return {uren:0,bedrag:0};
+  var kwart=Math.ceil(tekort*4)/4;
+  return {uren:r2(kwart), bedrag:r2(kwart*(RS.turnaroundPct/100)*(dagprijs/10))};
+}
+
+function isoWeek(ds){
+  var d=new Date(ds+'T00:00:00Z'), dag=(d.getUTCDay()+6)%7;
+  d.setUTCDate(d.getUTCDate()-dag+3);
+  var eerste=new Date(Date.UTC(d.getUTCFullYear(),0,4));
+  return 1+Math.round(((d-eerste)/86400000-3+((eerste.getUTCDay()+6)%7))/7);
+}
+function datumLabel(ds){
+  var d=new Date(ds+'T00:00:00Z');
+  return WEEKDAG[d.getUTCDay()].slice(0,2)+' '+d.getUTCDate()+' '+MAAND[d.getUTCMonth()];
+}
+function periodeLabel(dagen){
+  if(!dagen.length) return '';
+  var a=new Date(dagen[0].datum+'T00:00:00Z'), b=new Date(dagen[dagen.length-1].datum+'T00:00:00Z');
+  return a.getUTCDate()+' '+MAAND[a.getUTCMonth()]+' t/m '+b.getUTCDate()+' '+MAAND[b.getUTCMonth()];
+}
+
+/* ---------------------------------------------------------- laden */
+
+function melding(tekst, fout){
+  var el=document.createElement('div');
+  el.className='toast'+(fout?' fout':'');
+  el.textContent=tekst;
+  document.body.appendChild(el);
+  setTimeout(function(){ el.remove(); }, fout?6000:3000);
+}
+
+function toonLaadfout(titel, tekst){
+  document.getElementById('laad').style.display='flex';
+  document.getElementById('laadTitel').textContent=titel;
+  document.getElementById('laadTekst').textContent=tekst;
+}
+
+async function laden(){
+  if(!/^rec[A-Za-z0-9]{14}$/.test(TOKEN)){
+    toonLaadfout('Open het portaal via je eigen link',
+      'Je hebt van de productie een persoonlijke link gekregen. Gebruik die link; hij hoort te eindigen op ?t= en dan je eigen code.');
+    return;
+  }
+  try{
+    var r=await fetch('/api/portaal?t='+encodeURIComponent(TOKEN));
+    var d=await r.json();
+    if(!r.ok||d.fout) throw new Error(d.fout||('serverfout '+r.status));
+    DATA=d; RS=d.regelset; IK=d.ik;
+    INVOER={};
+    (d.uren||[]).forEach(function(x){ INVOER[x.datum]=x; });
+    WEKEN={};
+    (d.weken||[]).forEach(function(w){ WEKEN[w.week]=w; });
+    document.getElementById('laad').style.display='none';
+    start();
+  }catch(e){
+    toonLaadfout('Het lukt even niet', 'We krijgen je gegevens nu niet te pakken. Probeer het zo nog eens, of meld het bij de productie. ('+e.message+')');
+  }
+}
+
+function start(){
+  document.getElementById('prodnaam').textContent=DATA.productie;
+  document.getElementById('hNaam').textContent=IK.naam;
+  document.getElementById('hFunctie').textContent=IK.functie||'';
+  document.getElementById('hDag').textContent=IK.dagprijs?eur(IK.dagprijs):'nog niet ingevuld';
+  document.getElementById('hUur').textContent=IK.dagprijs?eur(IK.dagprijs/10):'—';
+  bouwWeken();
+  bouwGegevens();
+}
+
+/* ---------------------------------------------------------- weken */
+
+function weekIndeling(){
+  var per={};
+  DATA.draaidagen.forEach(function(d){
+    var w=isoWeek(d.datum);
+    (per[w]=per[w]||{week:w,dagen:[]}).dagen.push(d);
+  });
+  return Object.keys(per).map(function(k){return per[k];}).sort(function(a,b){return a.week-b.week;});
+}
+
+function statusVanWeek(w){
+  var rec=WEKEN[w];
+  if(!rec) return 'Open';
+  return rec.status||'Open';
+}
+function weekDicht(w){
+  var s=statusVanWeek(w);
+  return s==='Akkoord'||s==='Verwerkt';
+}
+
+function bouwWeken(){
+  var weken=weekIndeling();
+  if(!weken.length){
+    document.getElementById('inhoud').innerHTML='<p style="color:#6b7280;margin:22px 2px">Er staan nog geen draaidagen in het systeem. Zodra de callsheets erin staan verschijnen ze hier.</p>';
+    document.getElementById('voet').style.display='none';
+    return;
+  }
+  if(ACTIEVEWEEK==null) ACTIEVEWEEK=weken[0].week;
+  var b=document.getElementById('weekbalk');
+  b.innerHTML=weken.map(function(w){
+    var gedaan=w.dagen.filter(function(d){return INVOER[d.datum];}).length;
+    var klaar=gedaan===w.dagen.length;
+    var dicht=weekDicht(w.week);
+    return '<button class="'+(w.week===ACTIEVEWEEK?'aan ':'')+(klaar?'klaar':'')+'" onclick="kiesWeek('+w.week+')">'+
+      'Week '+w.week+
+      '<span class="pil">'+(dicht?'✓':gedaan+'/'+w.dagen.length)+'</span></button>';
+  }).join('');
+  toonWeek(weken.filter(function(w){return w.week===ACTIEVEWEEK;})[0]);
+}
+
+function kiesWeek(w){ ACTIEVEWEEK=w; OPEN=null; bouwWeken(); }
+
+function kiesTab(t){
+  TAB=t;
+  document.getElementById('tabUren').className = t==='uren'?'aan':'';
+  document.getElementById('tabGegevens').className = t==='gegevens'?'aan':'';
+  document.getElementById('inhoud').className = 'wrap'+(t==='uren'?'':' verborgen');
+  document.getElementById('gegevensblok').className = 'wrap gegevens'+(t==='gegevens'?'':' verborgen');
+  document.getElementById('weeknav').style.display = t==='uren'?'':'none';
+  document.getElementById('voet').style.display = t==='uren'?'':'none';
+}
+
+/* Teller: hoeveel nacht- en zondagdagen zitten al in de dagprijs, en de hoeveelste
+   is de dag die je nu open hebt. Zo zie je waar je staat zonder zelf te tellen. */
+function tellerHtml(){
+  var inb=DATA.inbegrepen||{};
+  var uit=[];
+  [['nacht','nachtdagenPerBlok','quotaNacht','nachten','nachtdag','nachtdagen'],
+   ['zondag','zondagenPerBlok','quotaZondag','zondagen','zondag','zondagen']]
+  .forEach(function(s){
+    var perBlok=inb[s[1]]||{}, quota=inb[s[2]]||{};
+    Object.keys(perBlok).forEach(function(blok){
+      var q=quota[blok]||0, lijst=perBlok[blok]||[];
+      if(!lijst.length) return;
+      var enkel=s[4], meer=s[5];
+      var tekst;
+      if(q===0){
+        tekst='Blok '+blok+' heeft '+lijst.length+' '+(lijst.length===1?enkel:meer)+
+              '. Daarover krijg je allemaal toeslag.';
+      } else if(lijst.length<=q){
+        tekst='Blok '+blok+' heeft '+lijst.length+' '+(lijst.length===1?enkel:meer)+
+              '. '+(lijst.length===1?'Die zit in je dagprijs.':'Die zitten allemaal in je dagprijs.');
+      } else {
+        tekst='Blok '+blok+' heeft '+lijst.length+' '+meer+'. De eerste '+q+
+              ' '+(q===1?'zit':'zitten')+' in je dagprijs, vanaf de '+(q+1)+'e krijg je toeslag.';
+      }
+      uit.push('<div class="t">'+tekst+'</div>');
+    });
+  });
+  return uit.length?'<div class="teller">'+uit.join('')+'</div>':'';
+}
+
+/* de hoeveelste nacht- of zondagdag van het blok is deze datum */
+function volgnummer(datum, soort){
+  var inb=DATA.inbegrepen||{};
+  var perBlok = soort==='nacht'?(inb.nachtdagenPerBlok||{}):(inb.zondagenPerBlok||{});
+  var quota   = soort==='nacht'?(inb.quotaNacht||{}):(inb.quotaZondag||{});
+  var blokken=Object.keys(perBlok);
+  for(var i=0;i<blokken.length;i++){
+    var idx=(perBlok[blokken[i]]||[]).indexOf(datum);
+    if(idx>-1) return {nr:idx+1, van:(perBlok[blokken[i]]||[]).length, quota:quota[blokken[i]]||0};
+  }
+  return null;
+}
+
+function weekstatusHtml(w){
+  var s=statusVanWeek(w), rec=WEKEN[w];
+  if(s==='Open') return '';
+  if(s==='Ingediend'){
+    return '<div class="weekstatus ingediend"><span class="vink">!</span>'+
+      '<div><b>Ingediend</b>, de productie moet deze week nog aftikken. Je kunt nog wijzigen zolang dat niet gebeurd is.</div>'+
+      '<span class="bed">'+eur(rec.totaal)+'</span></div>';
+  }
+  return '<div class="weekstatus akkoord"><span class="vink">✓</span>'+
+    '<div><b>Afgetikt door de productie</b>. Je kunt factureren; de bedragen staan in je go-mail.</div>'+
+    '<span class="bed">'+eur(rec.totaal)+'</span></div>';
+}
+
+function toonWeek(w){
+  var h='<div class="weekkop"><h2>Week '+w.week+'</h2><span class="per">'+
+        periodeLabel(w.dagen)+' · '+w.dagen.length+' draaidagen uit het callsheet</span></div>';
+  h+=weekstatusHtml(w.week);
+  h+=tellerHtml();
+  h+=w.dagen.map(dagKaart).join('');
+  document.getElementById('inhoud').innerHTML=h;
+  if(OPEN) herbereken(OPEN);
+  werkVoetBij(w);
+}
+
+function dagKaart(d){
+  var inv=INVOER[d.datum];
+  var open=OPEN===d.datum;
+  var dicht=weekDicht(isoWeek(d.datum));
+  var badges='';
+  if(d.nacht) badges+=' <span class="badge b-nacht">nacht</span>';
+  if(d.zondag) badges+=' <span class="badge b-zon">zondag</span>';
+  if(d.nacht){
+    var vn=volgnummer(d.datum,'nacht');
+    badges += DATA.inbegrepen.nachten[d.datum]
+      ? ' <span class="badge b-vrij">'+(vn?vn.nr+' van '+vn.quota+' ':'')+'in dagprijs</span>'
+      : ' <span class="badge b-vrij">met toeslag</span>';
+  }
+  if(d.zondag&&DATA.inbegrepen.zondagen[d.datum]) badges+=' <span class="badge b-vrij">in dagprijs</span>';
+
+  var bedrag=0, st='nog invullen', leeg=' leeg';
+  if(inv){ bedrag=rekenVoor(d,inv).totaal; st='ingevuld'; leeg=''; }
+
+  return '<div class="dag'+(open?' open':'')+'" id="dag_'+d.datum+'">'+
+    '<div class="rij" onclick="klapOpen(\''+d.datum+'\')">'+
+      '<div class="dd">DD'+(d.dd!=null?String(d.dd).padStart(2,'0'):'—')+'</div>'+
+      '<div class="dinfo">'+
+        '<div class="dtitel">'+datumLabel(d.datum)+badges+'</div>'+
+        '<div class="dsub">'+esc(d.crewcall||'')+' – '+esc(d.wrap||'')+(d.locatie?' · '+esc(d.locatie):'')+'</div>'+
+      '</div>'+
+      '<div class="status'+leeg+'"><div class="bed">'+eur(bedrag)+'</div><div class="st">'+st+'</div></div>'+
+      '<div class="chev">›</div>'+
+    '</div>'+
+    '<div class="form">'+(open?(dicht?slotHtml():formHtml(d)):'')+'</div>'+
+  '</div>';
+}
+
+function slotHtml(){
+  return '<div class="slot">Deze week is afgetikt door de productie en staat daarom op slot. '+
+         'Klopt er iets niet, mail dan de productieleider.</div>';
+}
+
+function klapOpen(datum){
+  OPEN = OPEN===datum ? null : datum;
+  bouwWeken();
+}
+
+/* ---------------------------------------------------------- formulier */
+
+function v(d,naam,stand){
+  var inv=INVOER[d.datum];
+  if(inv && inv[naam]!=null && inv[naam]!=='') return inv[naam];
+  return stand;
+}
+
+function veld(id,naam,label,waarde,type){
+  // altijd een tekstveld: een getalveld weigert de komma, en die gebruikt iedereen hier
+  return '<label class="v"><span class="n">'+label+'</span>'+
+    '<input type="text" id="f_'+id+'_'+naam+'" value="'+esc(waarde==null?'':waarde)+'" '+
+    (type==='tijd'?'inputmode="numeric" placeholder="uu:mm" ':'inputmode="decimal" ')+
+    'oninput="herbereken(\''+id+'\')"></label>';
+}
+
+function formHtml(d){
+  var id=d.datum;
+  var vervoerNu=v(d,'vervoer','');
+  return ''+
+  '<div class="callsheetregel">↳ <div>Uit het callsheet: crewcall <b>'+esc(d.crewcall||'')+'</b>, geplande wrap <b>'+esc(d.wrap||'')+'</b>'+
+    (d.lunch?', lunch '+esc(d.lunch):'')+(d.locatie?', locatie <b>'+esc(d.locatie)+'</b>':'')+
+    '.<br>Start en eind staan hieronder al ingevuld. Liep het anders, pas het aan.</div></div>'+
+
+  '<div class="veldgroep"><div class="kop">Op set</div><div class="grid">'+
+    veld(id,'start','Starttijd',v(d,'start',d.crewcall),'tijd')+
+    veld(id,'eind','Eindtijd (wrap)',v(d,'eind',d.wrap),'tijd')+
+    '<label class="v"><span class="n">Lunch</span><input class="auto" type="text" value="45 min, vast" readonly></label>'+
+  '</div>'+
+  '<label class="vink"><input type="checkbox" id="ng_'+id+'" '+(v(d,'nietGewerkt',false)?'checked':'')+
+    ' onchange="herbereken(\''+id+'\')"> Ik heb deze dag niet gewerkt</label>'+
+  '</div>'+
+
+  '<div class="veldgroep"><div class="kop">Reis</div>'+
+    '<p style="color:#6b7280;font-size:12.5px;margin:0 0 9px">Vul minimaal in hoe laat je van huis vertrok en hoe laat je weer thuis was. Aankomst en vertrek op de set mag je leeg laten; dan rekenen we met je start- en eindtijd.</p>'+
+    '<div class="grid">'+
+    veld(id,'reisHeenVertrek','Vertrek thuis',v(d,'reisHeenVertrek',''),'tijd')+
+    veld(id,'reisHeenAankomst','Aankomst set',v(d,'reisHeenAankomst',''),'tijd')+
+    veld(id,'reisTerugVertrek','Vertrek set',v(d,'reisTerugVertrek',''),'tijd')+
+    veld(id,'reisTerugThuis','Aankomst thuis',v(d,'reisTerugThuis',''),'tijd')+
+  '</div></div>'+
+
+  '<div class="veldgroep"><div class="kop">Vervoer en kosten</div>'+
+    '<label class="v" style="margin-bottom:9px"><span class="n">Waarmee reisde je?</span>'+
+      '<select id="f_'+id+'_vervoer" onchange="herbereken(\''+id+'\')">'+
+        '<option value=""'+(vervoerNu?'':' selected')+'>Kies</option>'+
+        VERVOER.map(function(o){
+          return '<option value="'+o+'"'+(vervoerNu===o?' selected':'')+'>'+o+'</option>';
+        }).join('')+
+      '</select></label>'+
+    '<div class="grid">'+
+      veld(id,'km','Km retour',v(d,'km',''),'getal')+
+      '<label class="v"><span class="n">Kmtarief</span><input class="auto" type="text" id="tar_'+id+'" value="" readonly></label>'+
+      veld(id,'parkeer','Parkeren (€)',v(d,'parkeer',''),'getal')+
+    '</div></div>'+
+
+  '<div class="veldgroep"><div class="kop">Toelichting</div>'+
+    '<textarea id="f_'+id+'_opmerking" oninput="herbereken(\''+id+'\')" '+
+      'placeholder="Bijvoorbeeld: 40 min gewacht op transport, of wat je vervoerde.">'+
+      esc(v(d,'opmerking','')||'')+'</textarea></div>'+
+
+  '<div class="berek" id="ber_'+id+'"></div>'+
+
+  '<div class="acties">'+
+    '<button class="knop prim" id="opsl_'+id+'" onclick="bewaar(\''+id+'\')">Dag opslaan</button>'+
+    '<button class="knop sec" onclick="wisDag(\''+id+'\')">Wissen</button>'+
+  '</div>';
+}
+
+function leesForm(datum){
+  function g(n){var e=document.getElementById('f_'+datum+'_'+n);return e?e.value:'';}
+  var ng=document.getElementById('ng_'+datum);
+  return {
+    datum:datum, start:g('start'), eind:g('eind'),
+    reisHeenVertrek:g('reisHeenVertrek'), reisHeenAankomst:g('reisHeenAankomst'),
+    reisTerugVertrek:g('reisTerugVertrek'), reisTerugThuis:g('reisTerugThuis'),
+    km:g('km'), parkeer:g('parkeer'), opmerking:g('opmerking'), vervoer:g('vervoer'),
+    nietGewerkt: ng?ng.checked:false
+  };
+}
+
+/* de vorige ingevulde draaidag, voor de turnaround */
+function vorigeDag(datum){
+  var eerder=DATA.draaidagen.filter(function(d){
+    return d.datum<datum && INVOER[d.datum] && !INVOER[d.datum].nietGewerkt;
+  });
+  if(!eerder.length) return null;
+  var d=eerder[eerder.length-1];
+  return Object.assign({datum:d.datum}, INVOER[d.datum]);
+}
+
+function rekenVoor(d, inv){
+  if(inv.nietGewerkt) return {leeg:true, totaal:0, meldingen:[]};
+  var materiaal = inv.vervoer==='Eigen auto met materiaal';
+  var kmTelt = inv.vervoer && !geenKm(inv.vervoer);
+  var c=berekenDag({
+    dagprijs:IK.dagprijs, groot:IK.groot, start:inv.start, eind:inv.eind,
+    reisuren:reisurenUit(inv), km:kmTelt?getal(inv.km):0,
+    kmTarief: materiaal?RS.kmMateriaal:RS.kmPersonen, zondag:d.zondag
+  });
+  var ta=berekenTurnaround(vorigeDag(d.datum), Object.assign({datum:d.datum},inv), IK.dagprijs);
+  var nachtVrij = d.nacht && DATA.inbegrepen.nachten[d.datum];
+  var zonVrij   = d.zondag && DATA.inbegrepen.zondagen[d.datum];
+  var naE = (d.nacht && !nachtVrij) ? c.naE : 0;
+  var zoE = zonVrij ? 0 : c.zoE;
+  var park = Math.max(0,getal(inv.parkeer));
+
+  var meldingen=[];
+  var s=pt(inv.start), e=pt(inv.eind);
+  if(s==null||e==null) meldingen.push('Vul start- en eindtijd in als uu:mm, bijvoorbeeld 07:00.');
+  else{
+    var duur=((e-s)+1440)%1440||1440;
+    if(duur>18*60) meldingen.push('Deze dag is langer dan 18 uur. Controleer of de eindtijd klopt.');
+    var call=pt(d.crewcall);
+    if(call!=null){
+      var vroeg=call-s; if(vroeg<-720)vroeg+=1440; if(vroeg>720)vroeg-=1440;
+      if(vroeg>60) meldingen.push('Je begint '+vroeg+' minuten voor de crewcall van '+d.crewcall+'. Zet de reden in de toelichting.');
+    }
+    var wr=pt(d.wrap);
+    if(wr!=null){
+      var laat=e-wr; if(laat<-720)laat+=1440; if(laat>720)laat-=1440;
+      if(laat>60) meldingen.push('Je eindigt '+laat+' minuten na de geplande wrap van '+d.wrap+'.');
+    }
+    var vs=pt(inv.reisTerugVertrek);
+    if(vs!=null && e!=null && Math.abs(((vs-e)+1440)%1440)>120 && ((vs-e)+1440)%1440<1320)
+      meldingen.push('Je vertrek van de set wijkt ver af van je eindtijd. Controleer of dat klopt.');
+  }
+  reisFouten(inv).forEach(function(m){ meldingen.push(m); });
+  if(!inv.vervoer) meldingen.push('Kies nog waarmee je reisde. Zonder die keuze tellen je kilometers niet mee.');
+  if(materiaal && !String(inv.opmerking||'').trim())
+    meldingen.push('Je koos materiaalvervoer. Zet in de toelichting wat je vervoerde, anders kan de productie het niet aftikken.');
+  if(inv.vervoer && geenKm(inv.vervoer) && getal(inv.km)>0)
+    meldingen.push('Bij dit vervoer worden geen kilometers vergoed, die zitten in de huur of bij je collega.');
+
+  var totaal=r2(c.otE+naE+c.reE+c.kmB+ta.bedrag+zoE+park);
+  return {c:c, ta:ta, naE:naE, zoE:zoE, park:park, nachtVrij:nachtVrij, zonVrij:zonVrij,
+          materiaal:materiaal, kmTelt:kmTelt, totaal:totaal, meldingen:meldingen};
+}
+
+function herbereken(datum){
+  var d=DATA.draaidagen.filter(function(x){return x.datum===datum;})[0];
+  var inv=leesForm(datum);
+  var r=rekenVoor(d,inv);
+  var tarEl=document.getElementById('tar_'+datum);
+  if(tarEl){
+    tarEl.value = !inv.vervoer ? 'kies eerst je vervoer'
+      : geenKm(inv.vervoer) ? 'geen kilometers'
+      : (r.materiaal?'materiaal 0,32':'personen 0,23');
+  }
+  var el=document.getElementById('ber_'+datum);
+  if(!el) return;
+  if(r.leeg){
+    el.innerHTML='<div class="r"><span class="l">Niet gewerkt</span><span>€ 0,00</span></div>';
+    return;
+  }
+  var c=r.c;
+  var h='';
+  h+=rij('Gewerkt', u(c.gewerkteUren)+' na aftrek van 45 min lunch · uurprijs '+eur(c.uur), null, 'dagprijs');
+  h+=rij('Overuren', c.otUren?u(c.otUren)+' boven de draaidag van 10:15':'', c.otE);
+  if(d.nacht) h+=rij('Nachttoeslag', r.nachtVrij?u(c.nachtUren)+' tussen 00:00 en 06:00':u(c.nachtUrenBetaald)+' tussen 00:00 en 06:00',
+                     r.nachtVrij?null:r.naE, r.nachtVrij?'zit in je dagprijs':null);
+  h+=rij('Reisuren', c.reisuren?u(c.reisuren)+(IK.groot?' als bestuurder groot materiaal à 100%':' waarvan de eerste 2 u voor eigen rekening'):'', c.reE);
+  h+=rij('Turnaround', r.ta.uren?u(r.ta.uren)+' te weinig rust':'', r.ta.bedrag);
+  if(d.zondag) h+=rij('Zondag of feestdag','', r.zonVrij?null:r.zoE, r.zonVrij?'zit in je dagprijs':null);
+  h+=rij('Kilometers', r.kmTelt&&getal(document.getElementById('f_'+datum+'_km')?document.getElementById('f_'+datum+'_km').value:0)
+        ? getal(document.getElementById('f_'+datum+'_km').value)+' km à '+(r.materiaal?'0,32':'0,23') : '', c.kmB);
+  h+=rij('Parkeren','', r.park);
+  h+='<div class="r tot"><span>Deze dag bovenop je dagprijs</span><span>'+eur(r.totaal)+'</span></div>';
+  if(r.nachtVrij){
+    var vn=volgnummer(datum,'nacht');
+    h+='<div class="melding vrij">Dit is nachtdag '+(vn?vn.nr:'?')+' van het blok. '+
+       (vn?'De eerste '+vn.quota+' '+(vn.quota===1?'zit':'zitten'):'De eerste zitten')+
+       ' in je dagprijs, zo staat het in de crewafspraken. '+
+       (vn&&vn.van>vn.quota?'Vanaf nachtdag '+(vn.quota+1)+' krijg je wel toeslag.':'')+'</div>';
+  }
+  if(r.zonVrij){
+    var vz=volgnummer(datum,'zondag');
+    h+='<div class="melding vrij">Dit is zondag '+(vz?vz.nr:'?')+' van het blok. '+
+       (vz?'De eerste '+vz.quota+' '+(vz.quota===1?'zit':'zitten'):'De eerste zitten')+
+       ' in je dagprijs. '+
+       (vz&&vz.van>vz.quota?'Vanaf zondag '+(vz.quota+1)+' krijg je wel toeslag.':'')+'</div>';
+  }
+  r.meldingen.forEach(function(m){ h+='<div class="melding">'+esc(m)+'</div>'; });
+  el.innerHTML=h;
+}
+
+function rij(label, sub, bedrag, tekst){
+  var nul = bedrag==null || bedrag===0;
+  return '<div class="r'+(nul?' nul':'')+'"><span class="l">'+label+
+    (sub?'<small>'+esc(sub)+'</small>':'')+'</span><span>'+
+    (tekst?esc(tekst):(bedrag==null?'—':eur(bedrag)))+'</span></div>';
+}
+
+/* ---------------------------------------------------------- opslaan */
+
+async function post(body){
+  var r=await fetch('/api/portaal',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(Object.assign({t:TOKEN}, body))
+  });
+  var d=await r.json();
+  if(!r.ok||d.fout) throw new Error(d.fout||('serverfout '+r.status));
+  return d;
+}
+
+async function bewaar(datum){
+  var knop=document.getElementById('opsl_'+datum);
+  var inv=leesForm(datum);
+  if(knop){ knop.disabled=true; knop.textContent='Opslaan…'; }
+  try{
+    var d=await post(Object.assign({actie:'dag'}, inv));
+    if(!d.ok){ melding(d.reden||'Opslaan lukte niet.', true); return; }
+    if(d.verwijderd) delete INVOER[datum]; else INVOER[datum]=inv;
+    OPEN=null;
+    bouwWeken();
+    melding('Dag opgeslagen.');
+  }catch(e){
+    melding('Opslaan lukte niet: '+e.message, true);
+  }finally{
+    if(knop){ knop.disabled=false; knop.textContent='Dag opslaan'; }
+  }
+}
+
+async function wisDag(datum){
+  try{
+    await post({actie:'dag', datum:datum, nietGewerkt:true});
+    delete INVOER[datum];
+    OPEN=null;
+    bouwWeken();
+    melding('Dag gewist.');
+  }catch(e){ melding('Wissen lukte niet: '+e.message, true); }
+}
+
+function werkVoetBij(w){
+  var tot=0, gedaan=0;
+  w.dagen.forEach(function(d){
+    var inv=INVOER[d.datum];
+    if(!inv) return;
+    gedaan++;
+    tot+=rekenVoor(d,inv).totaal;
+  });
+  document.getElementById('vWeek').textContent=w.week;
+  document.getElementById('vTotaal').textContent=eur(tot);
+  var dicht=weekDicht(w.week);
+  var s=statusVanWeek(w.week);
+  document.getElementById('vSub').textContent =
+    gedaan+' van '+w.dagen.length+' dagen ingevuld · bedragen exclusief btw, bovenop je dagprijs';
+  var k=document.getElementById('vKnop');
+  if(dicht){ k.disabled=true; k.textContent='Afgetikt'; return; }
+  k.disabled = gedaan===0;
+  k.textContent = s==='Ingediend' ? 'Opnieuw indienen' : (gedaan<w.dagen.length ? 'Week indienen ('+gedaan+'/'+w.dagen.length+')' : 'Week indienen');
+}
+
+async function dienIn(){
+  var k=document.getElementById('vKnop');
+  var w=ACTIEVEWEEK;
+  k.disabled=true; k.textContent='Indienen…';
+  try{
+    var d=await post({actie:'week', week:w});
+    if(!d.ok){ melding(d.reden||'Indienen lukte niet.', true); return; }
+    WEKEN[w]=Object.assign(WEKEN[w]||{week:w}, {status:'Ingediend', totaal:d.totaal});
+    bouwWeken();
+    melding('Week ingediend, de productie krijgt bericht.');
+  }catch(e){
+    melding('Indienen lukte niet: '+e.message, true);
+  }finally{
+    bouwWeken();
+  }
+}
+
+/* ---------------------------------------------------------- mijn gegevens */
+
+var GEG = [
+  ['straat','Straat en huisnummer','text'],
+  ['postcode','Postcode','text'],
+  ['woonplaats','Woonplaats','text'],
+  ['telefoon','Telefoonnummer','text'],
+  ['geboortedatum','Geboortedatum (jjjj-mm-dd)','text'],
+  ['iban','IBAN','text'],
+  ['noodcontact','Noodcontact (naam en nummer)','text'],
+  ['kenteken','Kenteken en auto','text'],
+  ['allergieen','Allergieën of dieet','text'],
+  ['bhv','BHV-diploma','select:Ja,Nee'],
+  ['contractvorm','Freelance of payroll','select:Freelance,Payroll'],
+  ['bedrijfsnaam','Bedrijfsnaam','text'],
+  ['btw','BTW-nummer','text'],
+  ['kvk','KVK-nummer','text'],
+  ['payrollsysteem','Payrollsysteem','text']
+];
+
+function bouwGegevens(){
+  var g=IK.gegevens||{};
+  var h='<p class="uitleg">Deze gegevens hebben we nodig voor je contract, je declaraties en je kilometervergoeding. '+
+        'Alleen de productie ziet ze. Je kunt ze altijd bijwerken; er ontstaat geen tweede regel.</p>';
+  h+='<div class="blok"><div class="kop">Jij</div><div class="grid">';
+  GEG.slice(0,9).forEach(function(f){ h+=gegVeld(f,g); });
+  h+='</div></div>';
+  h+='<div class="blok"><div class="kop">Zakelijk</div><div class="grid">';
+  GEG.slice(9).forEach(function(f){ h+=gegVeld(f,g); });
+  h+='</div></div>';
+  h+='<div class="acties" style="margin-bottom:26px"><button class="knop prim" id="gegKnop" onclick="bewaarGegevens()">Gegevens opslaan</button></div>';
+  document.getElementById('gegevensblok').innerHTML=h;
+}
+
+function gegVeld(f,g){
+  var sleutel=f[0], label=f[1], type=f[2];
+  var waarde=g[sleutel]||'';
+  if(type.indexOf('select:')===0){
+    var opties=type.slice(7).split(',');
+    return '<label class="v"><span class="n">'+label+'</span><select id="g_'+sleutel+'">'+
+      '<option value="">Kies</option>'+
+      opties.map(function(o){return '<option value="'+o+'"'+(waarde===o?' selected':'')+'>'+o+'</option>';}).join('')+
+      '</select></label>';
+  }
+  return '<label class="v"><span class="n">'+label+'</span>'+
+    '<input type="text" id="g_'+sleutel+'" value="'+esc(waarde)+'"></label>';
+}
+
+async function bewaarGegevens(){
+  var knop=document.getElementById('gegKnop');
+  var uit={};
+  GEG.forEach(function(f){
+    var el=document.getElementById('g_'+f[0]);
+    if(el) uit[f[0]]=el.value;
+  });
+  knop.disabled=true; knop.textContent='Opslaan…';
+  try{
+    await post({actie:'gegevens', gegevens:uit});
+    IK.gegevens=uit;
+    melding('Je gegevens zijn bijgewerkt.');
+  }catch(e){
+    melding('Opslaan lukte niet: '+e.message, true);
+  }finally{
+    knop.disabled=false; knop.textContent='Gegevens opslaan';
+  }
+}
+
+laden();
+</script>
+</body>
+</html>

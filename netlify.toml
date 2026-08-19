@@ -1,0 +1,28 @@
+# Netlify-instellingen voor het urenportaal van Bon Bini.
+# De site is een enkele HTML-pagina plus een serverfunctie die met Airtable praat.
+
+[build]
+  publish = "."
+  functions = "netlify/functions"
+  command = ""
+
+# De functie zet zijn eigen pad via `export const config = { path: "/api/portaal" }`.
+# Deze redirect staat er als vangnet voor het geval dat pad ooit wegvalt.
+[[redirects]]
+  from = "/api/portaal"
+  to = "/.netlify/functions/portaal"
+  status = 200
+  force = false
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "same-origin"
+
+# De pagina bevat persoonlijke gegevens; niet laten cachen door tussenliggende servers.
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-store"
