@@ -79,7 +79,7 @@ const F = {
     kmTarief: "fldsiJjyYqxQ22GGu",
     parkeer: "fldVHtOvArO6C7ohO",
     opmerking: "fldTfGqTN0FO8enHy",
-    vervoer: "fldNjtSolzwiK2MYn",
+    vervoer: "fldnWjYdxj2xunynp",
     vertrekadres: "fldx4vTnqOzyDld16",
     gewerkteUren: "fldeNWcX5bzIORgZG",
     otUren: "fld2adlJTn1P3fFXI",
@@ -322,9 +322,9 @@ function inbegrepenData(dagen: any[], soort: "nacht" | "zondag") {
 // ---------------------------------------------------------------- ophalen
 
 async function haalAlles(crewId: string) {
-  const crewRec: any = await at("/" + T.crew + "/" + crewId);
+  const crewRec: any = await at("/" + T.crew + "/" + crewId + "?returnFieldsByFieldId=true");
 
-  const dagRecs = await alleRecords(T.draaidagen, "?pageSize=100");
+  const dagRecs = await alleRecords(T.draaidagen, "?returnFieldsByFieldId=true&pageSize=100");
   const draaidagen = dagRecs
     .map((r: any) => ({
       id: r.id,
@@ -343,10 +343,10 @@ async function haalAlles(crewId: string) {
     .sort((a: any, b: any) => (a.datum < b.datum ? -1 : 1));
 
   const filter = encodeURIComponent("RECORD_ID({" + "Crew" + "}) != ''");
-  const urenRecs = await alleRecords(T.uren, "?pageSize=100");
+  const urenRecs = await alleRecords(T.uren, "?returnFieldsByFieldId=true&pageSize=100");
   const mijnUren = urenRecs.filter((r: any) => (r.fields[F.uur.crew] || []).indexOf(crewId) > -1);
 
-  const weekRecs = await alleRecords(T.weekstaat, "?pageSize=100");
+  const weekRecs = await alleRecords(T.weekstaat, "?returnFieldsByFieldId=true&pageSize=100");
   const mijnWeken = weekRecs.filter((r: any) => (r.fields[F.week.crew] || []).indexOf(crewId) > -1);
 
   const inbNacht = inbegrepenData(draaidagen, "nacht");
@@ -427,7 +427,7 @@ function weekOpSlot(weken: any[], datum: string) {
 }
 
 async function bewaarDag(crewId: string, body: any) {
-  const alles = await haalAlles(crewId);
+  const alles = await haalAlles(crewId + "?returnFieldsByFieldId=true");
   const datum = String(body.datum || "");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(datum)) throw new Error("Ongeldige datum");
   if (weekOpSlot(alles.weken, datum)) {
@@ -465,7 +465,7 @@ async function bewaarDag(crewId: string, body: any) {
     [F.uur.nacht]: !!dag.nacht,
     [F.uur.zondag]: !!dag.zondag,
   };
-  if (vervoer) velden[F.uur.vervoer] = vervoer;
+  if (vervoer) velden[F.uur.vervoer] = vervoer; velden["fldmbytC1V67nTCRP"] = materiaal ? "Afwijking" : "Open";
 
   if (bestaand) {
     await at("/" + T.uren + "/" + bestaand.id, { method: "PATCH", body: JSON.stringify({ fields: velden, typecast: true }) });
@@ -478,7 +478,7 @@ async function bewaarDag(crewId: string, body: any) {
 // De week doorrekenen en indienen. De motor draait hier, niet in het scherm, zodat
 // wat er in de weekstaat komt te staan altijd van de server komt.
 async function dienWeekIn(crewId: string, weeknummer: number) {
-  const alles = await haalAlles(crewId);
+  const alles = await haalAlles(crewId + "?returnFieldsByFieldId=true");
   const bestaandeWeek = alles.weken.filter((w: any) => w.week === weeknummer)[0];
   if (bestaandeWeek && (bestaandeWeek.status === "Akkoord" || bestaandeWeek.status === "Verwerkt")) {
     return { ok: false, reden: "Deze week is al afgetikt." };
