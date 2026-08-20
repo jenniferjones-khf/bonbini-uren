@@ -12,9 +12,13 @@
 //
 // Wil je tussendoor toch bijwerken, open dan /api/callsheets of /api/contracten in je
 // browser. Dan doet hij hetzelfde en zie je meteen wat hij gelezen heeft.
+//
+// /api/weekmails kijkt daarna of vandaag de eerste draaidag van een draaiweek is, of
+// gisteren de laatste. Zo ja, dan zet hij het bijbehorende vinkje aan bij de crew en
+// stuurt Bonnie vanuit Airtable de mail.
 
 export default async () => {
-  for (const pad of ["/api/callsheets", "/api/contracten"]) {
+  for (const pad of ["/api/callsheets", "/api/contracten", "/api/weekmails"]) {
     try {
       const r = await fetch("https://bonbini-uren.netlify.app" + pad);
       console.log("ochtendrun", pad, r.status, (await r.text()).slice(0, 600));
