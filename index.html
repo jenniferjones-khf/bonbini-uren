@@ -45,7 +45,10 @@
   nav.weken button.klaar .pil{background:var(--groen-l);color:var(--groen)}
 
   /* weekkop */
-  .weekkop{display:flex;align-items:baseline;gap:10px;margin:18px 2px 9px}
+  .weekkop{display:flex;align-items:baseline;gap:10px;margin:18px 2px 9px;flex-wrap:wrap}
+  .modus{display:flex;gap:0;margin-left:auto;border:1px solid #d8dae0;border-radius:8px;overflow:hidden}
+  .modus button{border:0;background:#fff;color:#4b5563;font:inherit;font-size:12.5px;padding:5px 11px;cursor:pointer}
+  .modus button.aan{background:#12141a;color:#fff}
   .weekkop h2{font-size:15px;margin:0;font-weight:650}
   .weekkop .per{color:var(--grijs);font-size:12.5px}
 
@@ -231,6 +234,16 @@
 
 var TOKEN = new URLSearchParams(location.search).get('t') || '';
 var DATA = null, RS = null, IK = null;
+
+// Het kilometertarief komt uit je eigen contract. Staat daar niets, dan valt het terug
+// op het tarief uit de regelset, zodat er nooit met nul gerekend wordt.
+function kmTariefIk(){ return (IK && IK.kmTarief) ? IK.kmTarief : RS.kmPersonen; }
+function kmTekst(t){ return Number(t).toFixed(2).replace('.',','); }
+
+// Sommigen vullen elke avond hun dag in, anderen doen de hele week in een keer.
+// Allebei mag; deze stand bepaalt of de dagen los openklappen of allemaal tegelijk
+// openstaan met een knop om ze in een keer op te slaan.
+var MODUS = 'dag';
 var INVOER = {};          // datum -> ingevulde velden
 var WEKEN = {};           // weeknummer -> weekstaat
 var ACTIEVEWEEK = null, OPEN = null, TAB = 'uren';
@@ -534,20 +547,33 @@ function weekstatusHtml(w){
 }
 
 function toonWeek(w){
+  var dicht=weekDicht(w.week);
   var h='<div class="weekkop"><h2>Week '+w.week+'</h2><span class="per">'+
-        periodeLabel(w.dagen)+' · '+w.dagen.length+' draaidagen uit het callsheet</span></div>';
+        periodeLabel(w.dagen)+' · '+w.dagen.length+' draaidagen uit het callsheet</span>'+
+        (dicht?'':'<div class="modus">'+
+          '<button class="'+(MODUS==='dag'?'aan':'')+'" onclick="kiesModus(\'dag\')">Per dag</button>'+
+          '<button class="'+(MODUS==='week'?'aan':'')+'" onclick="kiesModus(\'week\')">Hele week</button>'+
+        '</div>')+'</div>';
   h+=weekstatusHtml(w.week);
   h+=tellerHtml();
   h+=w.dagen.map(dagKaart).join('');
+  if(MODUS==='week' && !dicht){
+    h+='<div class="acties" style="margin:16px 2px 26px">'+
+       '<button class="knop prim" id="opslWeek" onclick="bewaarWeek()">Hele week opslaan</button>'+
+       '</div>';
+  }
   document.getElementById('inhoud').innerHTML=h;
-  if(OPEN) herbereken(OPEN);
+  if(MODUS==='week' && !dicht) w.dagen.forEach(function(d){ herbereken(d.datum); });
+  else if(OPEN) herbereken(OPEN);
   werkVoetBij(w);
 }
 
+function kiesModus(m){ MODUS=m; OPEN=null; bouwWeken(); }
+
 function dagKaart(d){
   var inv=INVOER[d.datum];
-  var open=OPEN===d.datum;
   var dicht=weekDicht(isoWeek(d.datum));
+  var open=(MODUS==='week'&&!dicht)||OPEN===d.datum;
   var badges='';
   if(d.nacht) badges+=' <span class="badge b-nacht">nacht</span>';
   if(d.zondag) badges+=' <span class="badge b-zon">zondag</span>';
@@ -584,6 +610,7 @@ function slotHtml(){
 }
 
 function klapOpen(datum){
+  if(MODUS==='week') return;
   OPEN = OPEN===datum ? null : datum;
   bouwWeken();
 }
@@ -652,7 +679,7 @@ function formHtml(d){
   '<div class="berek" id="ber_'+id+'"></div>'+
 
   '<div class="acties">'+
-    '<button class="knop prim" id="opsl_'+id+'" onclick="bewaar(\''+id+'\')">Dag opslaan</button>'+
+    (MODUS==='week'?'':'<button class="knop prim" id="opsl_'+id+'" onclick="bewaar(\''+id+'\')">Dag opslaan</button>')+
     '<button class="knop sec" onclick="wisDag(\''+id+'\')">Leegmaken</button>'+
   '</div>';
 }
@@ -686,7 +713,7 @@ function rekenVoor(d, inv){
   var c=berekenDag({
     dagprijs:IK.dagprijs, groot:IK.groot, start:inv.start, eind:inv.eind,
     reisuren:reisurenUit(inv), km:kmTelt?getal(inv.km):0,
-    kmTarief: materiaal?RS.kmMateriaal:RS.kmPersonen, zondag:d.zondag
+    kmTarief: materiaal?RS.kmMateriaal:kmTariefIk(), zondag:d.zondag
   });
   var ta=berekenTurnaround(vorigeDag(d.datum), Object.assign({datum:d.datum},inv), IK.dagprijs);
   var nachtVrij = d.nacht && DATA.inbegrepen.nachten[d.datum];
@@ -735,7 +762,7 @@ function herbereken(datum){
   if(tarEl){
     tarEl.value = !inv.vervoer ? 'kies eerst je vervoer'
       : geenKm(inv.vervoer) ? 'geen kilometers'
-      : (r.materiaal?'materiaal 0,32':'personen 0,23');
+      : (r.materiaal?'materiaal '+kmTekst(RS.kmMateriaal):'personen '+kmTekst(kmTariefIk()));
   }
   var el=document.getElementById('ber_'+datum);
   if(!el) return;
@@ -753,7 +780,7 @@ function herbereken(datum){
   h+=rij('Turnaround', r.ta.uren?u(r.ta.uren)+' te weinig rust':'', r.ta.bedrag);
   if(d.zondag) h+=rij('Zondag of feestdag','', r.zonVrij?null:r.zoE, r.zonVrij?'zit in je dagprijs':null);
   h+=rij('Kilometers', r.kmTelt&&getal(document.getElementById('f_'+datum+'_km')?document.getElementById('f_'+datum+'_km').value:0)
-        ? getal(document.getElementById('f_'+datum+'_km').value)+' km à '+(r.materiaal?'0,32':'0,23') : '', c.kmB);
+        ? getal(document.getElementById('f_'+datum+'_km').value)+' km à '+kmTekst(r.materiaal?RS.kmMateriaal:kmTariefIk()) : '', c.kmB);
   h+=rij('Parkeren','', r.park);
   h+='<div class="r tot"><span>Deze dag bovenop je dagprijs</span><span>'+eur(r.totaal)+'</span></div>';
   if(r.nachtVrij){
@@ -808,6 +835,36 @@ async function bewaar(datum){
     melding('Opslaan lukte niet: '+e.message, true);
   }finally{
     if(knop){ knop.disabled=false; knop.textContent='Dag opslaan'; }
+  }
+}
+
+// De hele week in een keer. Dagen waar niets is ingevuld slaan we over; die blijven
+// gewoon op "nog invullen" staan. Gaat er een dag mis, dan stoppen we en zeggen we
+// welke, zodat er niet half opgeslagen wordt zonder dat je het merkt.
+async function bewaarWeek(){
+  var w=weekIndeling().filter(function(x){return x.week===ACTIEVEWEEK;})[0];
+  if(!w) return;
+  var knop=document.getElementById('opslWeek');
+  if(knop){ knop.disabled=true; knop.textContent='Opslaan…'; }
+  var gedaan=0;
+  try{
+    for(var i=0;i<w.dagen.length;i++){
+      var datum=w.dagen[i].datum;
+      var inv=leesForm(datum);
+      var ietsIngevuld = inv.nietGewerkt || String(inv.start||'').trim() || String(inv.eind||'').trim();
+      if(!ietsIngevuld) continue;
+      var d=await post(Object.assign({actie:'dag'}, inv));
+      if(!d.ok){ melding(datumLabel(datum)+': '+(d.reden||'opslaan lukte niet.'), true); return; }
+      INVOER[datum]=inv;
+      gedaan++;
+    }
+    bouwWeken();
+    melding(gedaan===0 ? 'Er was nog niets ingevuld om op te slaan.'
+                       : gedaan+(gedaan===1?' dag':' dagen')+' opgeslagen.');
+  }catch(e){
+    melding('Opslaan lukte niet: '+e.message, true);
+  }finally{
+    if(knop){ knop.disabled=false; knop.textContent='Hele week opslaan'; }
   }
 }
 
