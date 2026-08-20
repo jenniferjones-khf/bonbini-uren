@@ -5,30 +5,33 @@
 // om af te ronden. Wat een draaiweek is, komt uit de tabel Draaidagen: die vult zich uit
 // de callsheets, dus het volgt het echte schema en geen vaste maandag-tot-vrijdag.
 //
+// Wie er mail krijgt, komt uit de crewregel van het callsheet. Stond je die week niet op
+// een callsheet, dan krijg je niets. Kan een naam van het callsheet niet aan een crewlid
+// gekoppeld worden, dan staat dat in de uitvoer; er verdwijnt dus nooit stilletjes
+// iemand. Staat er voor die week nergens een crewregel, dan gaat de mail naar iedereen
+// die meedoet, want niemand mailen zou erger zijn.
+//
 // Deze functie stuurt zelf geen mail. Hij zet alleen het juiste vinkje aan bij de crew;
 // de mail zelf komt uit de automatiseringen in Airtable, zodat de tekst daar te
 // wijzigen is zonder aan code te komen.
-//
-// Wat hij niet kan: bepalen wie er die dag op set stond. Callsheets noemen alleen
-// voornamen, dus de mail gaat naar alle actieve crewleden met een overurenregeling en
-// een mailadres. Wie geen uren bijhoudt, zet je uit met het ene vinkje Geen urenregistratie
-// op de Crew-tabel; dat is per persoon en staat standaard uit, zodat vergeten aanvinken
-// hooguit een overbodige mail kost en nooit iemands uren.
 
 const BASE = "app4HQkMqFpZCnqpv";
 const API = "https://api.airtable.com/v0/" + BASE;
 const T_DAG = "tblMsE819GouzsTCo";
 const T_CREW = "tblpaxWdwaY6XbPbT";
+const T_REGELSET = "tbljCvRiFsZav6XbL";
 
 const F = {
   datum: "fldc7rNjjJ2tWf6HH",
+  crewOpCallsheet: "fldB2LljUvMl7OOrF",
   actief: "fldl49e40hA0LnwF9",
-  otRegelset: "fldmgj93afhMKBD0q",
   email: "fldClEi5WxnJfpmFI",
   naam: "fldypfInaNvNURVID",
+  voornaam: "fldx9Z5jB6cx4gc8W",
   startmail: "fldXcX16qUjGrmG1D",
-  geenUren: "fldiBe898AEQaHfGB",
   herinnering: "fldPop8xTY8qEfDG2",
+  geenUren: "fldiBe898AEQaHfGB",
+  testdatum: "fldIZ4WeM3no1pgXA",
 };
 
 async function at(pad: string, opties: RequestInit = {}) {
@@ -53,7 +56,6 @@ async function alles(tabel: string) {
   return uit;
 }
 
-// Nederlandse kalenderdag, ook als de server in UTC staat.
 function vandaagNL() {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Amsterdam" }).format(new Date());
 }
@@ -81,44 +83,103 @@ export function grenzen(datums: string[]) {
     eerste.add(per[w][0]);
     laatste.add(per[w][per[w].length - 1]);
   });
-  return { eerste, laatste };
+  return { eerste, laatste, per };
 }
 
-export async function verwerk(peildatum?: string, droog = false) {
-  const vandaag = peildatum || vandaagNL();
+function sleutel(s: any) {
+  return String(s || "").normalize("NFC").toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+// De crewregel op een callsheet is een rij voornamen achter elkaar. Meer hebben we niet:
+// geen achternaam, geen functie. Daarom matchen we op voornaam.
+export function splitsNamen(tekst: string) {
+  return String(tekst || "")
+    .split(/[,\n;]+/)
+    .map((s) => s.replace(/\(.*?\)/g, "").trim())
+    .filter((s) => s.length > 1 && !/^\d+$/.test(s));
+}
+
+function voornaamVan(rec: any) {
+  const vn = String(rec.fields[F.voornaam] || "").trim();
+  if (vn) return sleutel(vn);
+  return sleutel(String(rec.fields[F.naam] || "").split(" ")[0]);
+}
+
+export async function verwerk(peilOverride?: string, droog = false) {
+  const regelset = await alles(T_REGELSET);
+  const testdatum = regelset[0] && regelset[0].fields[F.testdatum];
+  const vandaag = peilOverride || (testdatum ? String(testdatum).slice(0, 10) : vandaagNL());
   const gisteren = dagErvoor(vandaag);
 
-  const datums = (await alles(T_DAG)).map((r: any) => r.fields[F.datum]).filter(Boolean);
+  const dagen = await alles(T_DAG);
+  const datums = dagen.map((r: any) => r.fields[F.datum]).filter(Boolean);
   const g = grenzen(datums);
 
   const start = g.eerste.has(vandaag);
   const einde = g.laatste.has(gisteren);
-  if (!start && !einde) return { vandaag, start: false, einde: false, aangezet: 0, reden: "vandaag is geen eerste draaidag en gisteren was geen laatste draaidag" };
+  if (!start && !einde) {
+    return {
+      peildatum: vandaag,
+      testdatumGebruikt: !!testdatum && !peilOverride,
+      start: false,
+      einde: false,
+      aangezet: 0,
+      reden: "vandaag is geen eerste draaidag en gisteren was geen laatste draaidag",
+    };
+  }
 
-  // Eén schakelaar voor mail: Geen urenregistratie. Of de rekenmotor overuren uitrekent
-  // is een andere vraag (OT-regelset van toepassing) en hoort hier niet mee te tellen,
-  // anders staan er twee vinkjes voor hetzelfde en weet niemand meer welke telt.
-  const crew = (await alles(T_CREW)).filter(
+  // De week waar het om gaat: bij de startmail die van vandaag, bij de herinnering die
+  // van gisteren, want dat was de laatste draaidag.
+  const week = isoWeek(start ? vandaag : gisteren);
+  const dagenInWeek = (g.per[week] || []);
+  const opCallsheet = new Set<string>();
+  dagenInWeek.forEach((d) => {
+    const rec = dagen.filter((r: any) => r.fields[F.datum] === d)[0];
+    splitsNamen(rec && rec.fields[F.crewOpCallsheet]).forEach((n) => opCallsheet.add(sleutel(n)));
+  });
+
+  const meedoen = (await alles(T_CREW)).filter(
     (r: any) => r.fields[F.actief] !== false && !r.fields[F.geenUren] && String(r.fields[F.email] || "").trim()
   );
 
+  // Geen crewregels voor deze week? Dan mailen we iedereen die meedoet en zeggen we dat
+  // erbij. Te veel mail is vervelend, geen mail kost iemand zijn uren.
+  const geenLijst = opCallsheet.size === 0;
+  const kiezen = geenLijst ? meedoen : meedoen.filter((r: any) => opCallsheet.has(voornaamVan(r)));
+
+  const gekoppeld = new Set(meedoen.map(voornaamVan));
+  const onbekendeNamen = [...opCallsheet].filter((n) => !gekoppeld.has(n));
+  const nietGemaild = meedoen.filter((r: any) => kiezen.indexOf(r) < 0).map((r: any) => String(r.fields[F.naam] || r.id));
+
   const namen: string[] = [];
-  for (const c of crew) {
+  for (const c of kiezen) {
     const velden: any = {};
     if (start) velden[F.startmail] = true;
     if (einde) velden[F.herinnering] = true;
-    // Met ?droog=1 zet hij niets aan en zie je alleen wie er mail zou krijgen.
     if (!droog) await at("/" + T_CREW + "/" + c.id, { method: "PATCH", body: JSON.stringify({ fields: velden, typecast: true }) });
     namen.push(String(c.fields[F.naam] || c.id));
   }
 
-  return { vandaag, gisteren, start, einde, droog, aangezet: droog ? 0 : namen.length, crew: namen };
+  return {
+    peildatum: vandaag,
+    testdatumGebruikt: !!testdatum && !peilOverride,
+    gisteren,
+    week,
+    start,
+    einde,
+    droog,
+    opCallsheet: geenLijst ? "geen crewregels gevonden voor deze week, daarom iedereen gemaild" : [...opCallsheet],
+    aangezet: droog ? 0 : namen.length,
+    crew: namen,
+    nietGemaild,
+    onbekendeNamenOpCallsheet: onbekendeNamen,
+  };
 }
 
 export default async (req: Request) => {
   try {
-    // Met ?datum=2026-11-03 kun je een dag naspelen zonder te wachten, en met ?droog=1
-    // zie je wie er mail zou krijgen zonder dat er iets wordt verstuurd.
+    // ?datum=2026-11-03 speelt een dag na, ?droog=1 zet niets aan en laat alleen zien
+    // wie er mail zou krijgen.
     const p = new URL(req.url).searchParams;
     const peil = p.get("datum") || undefined;
     const uit = await verwerk(peil && /^\d{4}-\d{2}-\d{2}$/.test(peil) ? peil : undefined, p.get("droog") === "1");
