@@ -1,0 +1,9 @@
+{
+  "name": "bonbini-uren",
+  "private": true,
+  "type": "module",
+  "description": "Urenportaal en callsheet-inlezer voor Bon Bini, Jetzt Geht's Los.",
+  "dependencies": {
+    "unpdf": "^0.12.1"
+  }
+}
