@@ -157,9 +157,11 @@ export function leesCallsheet(tekst: string, bestandsnaam: string) {
   // Op sommige callsheets staat het setadres achter "SET", op andere staat daar niets
   // en volgt alleen het volgende kopje. Een adres heeft een huisnummer en een komma;
   // is dat er niet, dan hebben we het niet gevonden en zeggen we dat ook.
-  const adres = /★[ \t]*SET[ \t]+([^\n]{6,120})/.exec(t);
-  const kandidaat = adres ? adres[1].trim() : "";
-  if (/\d/.test(kandidaat) && kandidaat.indexOf(",") > -1 && !/^[☉◉★]/.test(kandidaat)) {
+  const adres = /★[ \t]*SET[ \t]+([^\n]{6,200})/.exec(t);
+  // In de ene PDF staat het adres op een eigen regel, in de andere loopt de tekst door
+  // met HOLDING en BASECAMP erachter. Knip daarom af bij het eerstvolgende bolletje.
+  const kandidaat = (adres ? adres[1] : "").split(/[☉◉★]/)[0].replace(/\s+/g, " ").trim();
+  if (/\d/.test(kandidaat) && kandidaat.indexOf(",") > -1) {
     uit.setadres = kandidaat;
   }
   if (!uit.setadres) uit.meldingen.push("setadres niet gevonden, vul het handmatig aan voor de kilometerberekening");
