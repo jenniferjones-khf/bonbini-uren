@@ -2,8 +2,9 @@
   "name": "bonbini-uren",
   "private": true,
   "type": "module",
-  "description": "Urenportaal en callsheet-inlezer voor Bon Bini, Jetzt Geht's Los.",
+  "description": "Urenportaal, callsheet-inlezer en contract-inlezer voor Bon Bini, Jetzt Geht's Los.",
   "dependencies": {
+    "fflate": "^0.8.3",
     "unpdf": "^0.12.1"
   }
 }
