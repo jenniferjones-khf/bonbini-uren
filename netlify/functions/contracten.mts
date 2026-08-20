@@ -39,6 +39,7 @@ const F = {
   dagprijs: "fld1LOYLGgIt8AHeH",
   maandfee: "fld20uyjjkp4I6Ce8",
   kmTarief: "fld2BrRp6HJm8KAia",
+  otRegelset: "fldmgj93afhMKBD0q",
   straat: "fld4RbRodT64ygSrj",
   postcode: "fldkr0cwaheZ2HLvJ",
   woonplaats: "fldovdqOJP57WQJAn",
@@ -225,7 +226,10 @@ export function leesContract(tekst: string, bestandsnaam: string) {
   if (ot) {
     uit.overuren = ot;
     if (/in overleg|maandvergoeding|geen/i.test(ot)) {
-      uit.meldingen.push("overuren: \"" + ot + "\". Volgens het contract dus geen vaste overurenregeling");
+      uit.otRegeling = false;
+      uit.meldingen.push("overuren: \"" + ot + "\". Volgens het contract dus geen vaste overurenregeling; de OT-regelset staat daarom uit");
+    } else {
+      uit.otRegeling = true;
     }
   }
 
@@ -307,6 +311,12 @@ export async function verwerk() {
     if (c.dagprijs) f[F.dagprijs] = c.dagprijs;
     if (c.maandfee) f[F.maandfee] = c.maandfee;
     if (c.kmTarief) f[F.kmTarief] = c.kmTarief;
+
+    // Of de overurenregeling geldt komt uit de regel Overuren in het contract. Dit
+    // wordt alleen gezet als het contract nieuw of vervangen is; zet de productie het
+    // daarna met de hand anders, dan blijft dat staan tot er een nieuwe versie van het
+    // contract in de map komt.
+    if (typeof c.otRegeling === "boolean") f[F.otRegelset] = c.otRegeling;
 
     // Persoonsgegevens: alleen aanvullen wat nog leeg is. Staat er al iets anders, dan
     // melden we het verschil en laten we het staan.
