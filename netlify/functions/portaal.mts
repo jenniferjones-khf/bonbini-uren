@@ -62,6 +62,7 @@ const F = {
     setadres: "fldofXLLEY8m9sFsi",
   },
   uur: {
+    nietGewerkt: "fldZZUJl3ypFGL4Zz",
     registratie: "fldMeqRcR0Skjde27",
     crew: "fldfvmiXAJs7zwkR5",
     datum: "fldUJUogwUXJcHjUY",
@@ -403,6 +404,7 @@ async function haalAlles(crewId: string) {
       vervoer: (r.fields[F.uur.vervoer] || {}).name || "",
       parkeer: r.fields[F.uur.parkeer] || "",
       opmerking: r.fields[F.uur.opmerking] || "",
+      nietGewerkt: !!r.fields[F.uur.nietGewerkt],
     })),
     weken: mijnWeken.map((r: any) => ({
       id: r.id,
@@ -434,12 +436,50 @@ async function bewaarDag(crewId: string, body: any) {
     return { ok: false, reden: "Deze week is al afgetikt door de productie en kan niet meer worden gewijzigd. Mail de productieleider als er iets niet klopt." };
   }
 
-  const dag = alles.draaidagen.filter((d: any) => d.datum === datum)[0] || {};
+  const dag = alles.draaidagen.filter((d: any) => d.datum === datum)[0] || ({} as any);
   const bestaand = alles.uren.filter((u: any) => u.datum === datum)[0];
 
+  // Niet gewerkt is een antwoord, geen leegte. De regel blijft staan met nul euro en
+  // het vinkje aan, zodat de productie in de tabel het verschil ziet tussen "deze dag
+  // niet gewerkt" en "nog niet ingevuld". Weggooien deed dat verschil verdwijnen.
   if (body.nietGewerkt) {
-    if (bestaand) await at("/" + T.uren + "/" + bestaand.id, { method: "DELETE" });
-    return { ok: true, verwijderd: true };
+    const leeg: any = {
+      [F.uur.crew]: [crewId],
+      [F.uur.datum]: datum,
+      [F.uur.nietGewerkt]: true,
+      [F.uur.start]: "",
+      [F.uur.eind]: "",
+      [F.uur.reisHeenVertrek]: "",
+      [F.uur.reisHeenAankomst]: "",
+      [F.uur.reisTerugVertrek]: "",
+      [F.uur.reisTerugThuis]: "",
+      [F.uur.km]: 0,
+      [F.uur.parkeer]: 0,
+      [F.uur.pauze]: 0,
+      [F.uur.setlocatie]: dag.locatie || "",
+      [F.uur.nacht]: false,
+      [F.uur.zondag]: false,
+      [F.uur.opmerking]: String(body.opmerking || ""),
+      [F.uur.status]: "Open",
+      [F.uur.gewerkteUren]: 0,
+      [F.uur.otUren]: 0,
+      [F.uur.otBedrag]: 0,
+      [F.uur.nachtUren]: 0,
+      [F.uur.nachtBedrag]: 0,
+      [F.uur.reisuren]: 0,
+      [F.uur.reisBedrag]: 0,
+      [F.uur.kmBedrag]: 0,
+      [F.uur.taUren]: 0,
+      [F.uur.taBedrag]: 0,
+      [F.uur.zondagBedrag]: 0,
+      [F.uur.totaal]: 0,
+    };
+    if (bestaand) {
+      await at("/" + T.uren + "/" + bestaand.id, { method: "PATCH", body: JSON.stringify({ fields: leeg, typecast: true }) });
+      return { ok: true, id: bestaand.id, nietGewerkt: true };
+    }
+    const nw: any = await at("/" + T.uren, { method: "POST", body: JSON.stringify({ fields: leeg, typecast: true }) });
+    return { ok: true, id: nw.id, nietGewerkt: true };
   }
 
   const vervoer = String(body.vervoer || "");
@@ -464,6 +504,7 @@ async function bewaarDag(crewId: string, body: any) {
     [F.uur.setlocatie]: dag.locatie || "",
     [F.uur.nacht]: !!dag.nacht,
     [F.uur.zondag]: !!dag.zondag,
+    [F.uur.nietGewerkt]: false,
   };
   if (vervoer) velden[F.uur.vervoer] = vervoer; velden["fldmbytC1V67nTCRP"] = materiaal ? "Afwijking" : "Open";
 
@@ -473,6 +514,21 @@ async function bewaarDag(crewId: string, body: any) {
   }
   const nieuw: any = await at("/" + T.uren, { method: "POST", body: JSON.stringify({ fields: velden, typecast: true }) });
   return { ok: true, id: nieuw.id };
+}
+
+// Leegmaken is iets anders dan niet gewerkt: hier wil het crewlid zijn invoer echt
+// terug naar nul, alsof hij de dag nog moet invullen. Alleen mogelijk zolang de week
+// niet is afgetikt.
+async function wisDagRecord(crewId: string, body: any) {
+  const alles = await haalAlles(crewId);
+  const datum = String(body.datum || "");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(datum)) throw new Error("Ongeldige datum");
+  if (weekOpSlot(alles.weken, datum)) {
+    return { ok: false, reden: "Deze week is al afgetikt door de productie en kan niet meer worden gewijzigd. Mail de productieleider als er iets niet klopt." };
+  }
+  const bestaand = alles.uren.filter((u: any) => u.datum === datum)[0];
+  if (bestaand) await at("/" + T.uren + "/" + bestaand.id, { method: "DELETE" });
+  return { ok: true, verwijderd: true };
 }
 
 // De week doorrekenen en indienen. De motor draait hier, niet in het scherm, zodat
@@ -487,19 +543,24 @@ async function dienWeekIn(crewId: string, weeknummer: number) {
   const dagprijs = getal(alles.ik.dagprijs);
   if (!dagprijs) return { ok: false, reden: "Er staat nog geen dagprijs in je contract. Vraag de productie om die in te vullen." };
 
-  const inWeek = alles.uren
+  const beantwoord = alles.uren
     .filter((u: any) => u.datum && isoWeek(u.datum).week === weeknummer)
     .sort((a: any, b: any) => (a.datum < b.datum ? -1 : 1));
-  if (!inWeek.length) return { ok: false, reden: "Er staan nog geen ingevulde dagen in deze week." };
+  if (!beantwoord.length) return { ok: false, reden: "Er staan nog geen ingevulde dagen in deze week." };
+  // Dagen die als niet gewerkt zijn aangevinkt tellen wel als antwoord, maar leveren
+  // niets op en horen ook niet mee te doen in de turnaround-keten.
+  const inWeek = beantwoord.filter((u: any) => !u.nietGewerkt);
 
   const tot = { uren: 0, ot: 0, nacht: 0, reis: 0, ta: 0, zondag: 0, km: 0, parkeer: 0 };
   let vorige: any = null;
 
   // de vorige draaidag kan in de week ervoor liggen; die telt mee voor turnaround
-  const alleIngevuld = alles.uren.slice().sort((a: any, b: any) => (a.datum < b.datum ? -1 : 1));
+  const alleIngevuld = alles.uren
+    .filter((u: any) => !u.nietGewerkt)
+    .sort((a: any, b: any) => (a.datum < b.datum ? -1 : 1));
 
   for (const u of inWeek) {
-    const dag = alles.draaidagen.filter((d: any) => d.datum === u.datum)[0] || {};
+    const dag = alles.draaidagen.filter((d: any) => d.datum === u.datum)[0] || ({} as any);
     const materiaal = u.vervoer === "Eigen auto met materiaal";
     const c = berekenDag({
       dagprijs,
@@ -548,7 +609,7 @@ async function dienWeekIn(crewId: string, weeknummer: number) {
   }
 
   const totaal = r2(tot.ot + tot.nacht + tot.reis + tot.ta + tot.zondag + tot.km + tot.parkeer);
-  const jaar = isoWeek(inWeek[0].datum).jaar;
+  const jaar = isoWeek(beantwoord[0].datum).jaar;
   const velden: any = {
     [F.week.naam]: alles.ik.naam + " week " + weeknummer,
     [F.week.crew]: [crewId],
@@ -630,6 +691,7 @@ export default async (req: Request) => {
       if (body.actie === "dag") return json(await bewaarDag(t, body));
       if (body.actie === "week") return json(await dienWeekIn(t, +body.week));
       if (body.actie === "gegevens") return json(await bewaarGegevens(t, body));
+      if (body.actie === "wis") return json(await wisDagRecord(t, body));
       return json({ fout: "onbekende actie" }, 400);
     }
 
