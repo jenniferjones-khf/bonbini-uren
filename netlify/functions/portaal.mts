@@ -340,6 +340,16 @@ function inbegrepenData(dagen: any[], soort: "nacht" | "zondag") {
 async function haalAlles(crewId: string) {
   const crewRec: any = await at("/" + T.crew + "/" + crewId + "?returnFieldsByFieldId=true");
 
+  // Draaien we op een testdatum, dan moet het portaal dat kunnen zeggen. Anders ziet een
+  // crewlid draaidagen uit februari staan terwijl het augustus is, en denkt hij dat hij
+  // het zelf verkeerd doet.
+  let testdatum = "";
+  try {
+    const rs: any = await at("/" + T.regelset + "?returnFieldsByFieldId=true&pageSize=1");
+    const eerste = rs.records && rs.records[0];
+    if (eerste) testdatum = String(eerste.fields["fldIZ4WeM3no1pgXA"] || "").slice(0, 10);
+  } catch {}
+
   const dagRecs = await alleRecords(T.draaidagen, "?returnFieldsByFieldId=true&pageSize=100");
   const draaidagen = dagRecs
     .map((r: any) => ({
@@ -372,6 +382,8 @@ async function haalAlles(crewId: string) {
 
   return {
     productie: "Bon Bini, Jetzt Geht's Los",
+    testdatum,
+    vandaag: new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Amsterdam" }).format(new Date()),
     regelset: RS,
     inbegrepen: {
       nachten: inbNacht.data,
@@ -463,6 +475,13 @@ async function bewaarDag(crewId: string, body: any) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(datum)) throw new Error("Ongeldige datum");
   if (weekOpSlot(alles.weken, datum)) {
     return { ok: false, reden: "Deze week is al afgetikt door de productie en kan niet meer worden gewijzigd. Mail de productieleider als er iets niet klopt." };
+  }
+
+  // Een dag die nog moet komen kun je niet invullen. Het scherm laat die dagen al niet
+  // openklappen, maar de rem hoort ook hier te zitten: een blokkade die alleen in de
+  // browser bestaat is geen blokkade.
+  if (datum > alles.vandaag) {
+    return { ok: false, reden: "Deze draaidag is nog niet geweest. Je kunt hem invullen vanaf de dag zelf." };
   }
 
   const dag = alles.draaidagen.filter((d: any) => d.datum === datum)[0] || ({} as any);
