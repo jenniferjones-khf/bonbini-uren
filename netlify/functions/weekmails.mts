@@ -81,7 +81,7 @@ export function grenzen(datums: string[]) {
   return { eerste, laatste };
 }
 
-export async function verwerk(peildatum?: string) {
+export async function verwerk(peildatum?: string, droog = false) {
   const vandaag = peildatum || vandaagNL();
   const gisteren = dagErvoor(vandaag);
 
@@ -101,18 +101,21 @@ export async function verwerk(peildatum?: string) {
     const velden: any = {};
     if (start) velden[F.startmail] = true;
     if (einde) velden[F.herinnering] = true;
-    await at("/" + T_CREW + "/" + c.id, { method: "PATCH", body: JSON.stringify({ fields: velden, typecast: true }) });
+    // Met ?droog=1 zet hij niets aan en zie je alleen wie er mail zou krijgen.
+    if (!droog) await at("/" + T_CREW + "/" + c.id, { method: "PATCH", body: JSON.stringify({ fields: velden, typecast: true }) });
     namen.push(String(c.fields[F.naam] || c.id));
   }
 
-  return { vandaag, gisteren, start, einde, aangezet: namen.length, crew: namen };
+  return { vandaag, gisteren, start, einde, droog, aangezet: droog ? 0 : namen.length, crew: namen };
 }
 
 export default async (req: Request) => {
   try {
-    // Met ?datum=2026-11-03 kun je een dag naspelen zonder te wachten.
-    const peil = new URL(req.url).searchParams.get("datum") || undefined;
-    const uit = await verwerk(peil && /^\d{4}-\d{2}-\d{2}$/.test(peil) ? peil : undefined);
+    // Met ?datum=2026-11-03 kun je een dag naspelen zonder te wachten, en met ?droog=1
+    // zie je wie er mail zou krijgen zonder dat er iets wordt verstuurd.
+    const p = new URL(req.url).searchParams;
+    const peil = p.get("datum") || undefined;
+    const uit = await verwerk(peil && /^\d{4}-\d{2}-\d{2}$/.test(peil) ? peil : undefined, p.get("droog") === "1");
     return new Response(JSON.stringify(uit, null, 2), {
       headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
     });
