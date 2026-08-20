@@ -11,7 +11,9 @@
 //
 // Wat hij niet kan: bepalen wie er die dag op set stond. Callsheets noemen alleen
 // voornamen, dus de mail gaat naar alle actieve crewleden met een overurenregeling en
-// een mailadres.
+// een mailadres. Wie geen uren bijhoudt, zet je uit met het vinkje Geen urenregistratie
+// op de Crew-tabel; dat is per persoon en staat standaard uit, zodat vergeten aanvinken
+// hooguit een overbodige mail kost en nooit iemands uren.
 
 const BASE = "app4HQkMqFpZCnqpv";
 const API = "https://api.airtable.com/v0/" + BASE;
@@ -25,6 +27,7 @@ const F = {
   email: "fldClEi5WxnJfpmFI",
   naam: "fldypfInaNvNURVID",
   startmail: "fldXcX16qUjGrmG1D",
+  geenUren: "fldiBe898AEQaHfGB",
   herinnering: "fldPop8xTY8qEfDG2",
 };
 
@@ -93,7 +96,11 @@ export async function verwerk(peildatum?: string, droog = false) {
   if (!start && !einde) return { vandaag, start: false, einde: false, aangezet: 0, reden: "vandaag is geen eerste draaidag en gisteren was geen laatste draaidag" };
 
   const crew = (await alles(T_CREW)).filter(
-    (r: any) => r.fields[F.actief] !== false && r.fields[F.otRegelset] !== false && String(r.fields[F.email] || "").trim()
+    (r: any) =>
+      r.fields[F.actief] !== false &&
+      r.fields[F.otRegelset] !== false &&
+      !r.fields[F.geenUren] &&
+      String(r.fields[F.email] || "").trim()
   );
 
   const namen: string[] = [];
