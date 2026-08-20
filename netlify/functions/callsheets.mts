@@ -127,21 +127,39 @@ export function leesCallsheet(tekst: string, bestandsnaam: string) {
   const t = String(tekst);
   const uit: any = { bron: bestandsnaam, meldingen: [] as string[] };
 
+  // De datum staat twee keer op het callsheet: in de kop en in de slotregel. In de
+  // praktijk wijken die soms van elkaar af doordat een callsheet is doorgeschoven en de
+  // kop niet is bijgewerkt. De slotregel is de betrouwbare: die heeft ook het jaartal en
+  // wordt door het sjabloon zelf gevuld. Wijken ze af, dan nemen we de slotregel en
+  // zetten we de dag op Controleren, want een verkeerde datum betekent uren op de
+  // verkeerde dag.
   const kop = /CALLSHEET\s*#\s*(\d{1,3})\s*[-–]\s*([A-Za-zÀ-ÿ]+)\s+(\d{1,2})\s+([A-Za-zÀ-ÿ]+)/i.exec(t);
-  if (kop) {
-    uit.dd = +kop[1];
-    uit.weekdag = kop[2].toLowerCase();
-    const dag = +kop[3];
-    const maand = MAAND[kop[4].toLowerCase()];
-    const jaarM = /EINDE CALLSHEET[^|]*\b(20\d{2})\b/i.exec(t);
-    const jaar = jaarM ? +jaarM[1] : null;
-    if (maand && jaar) {
-      uit.datum = jaar + "-" + String(maand).padStart(2, "0") + "-" + String(dag).padStart(2, "0");
-    } else {
-      uit.meldingen.push(maand ? "jaartal niet gevonden" : "maand niet herkend: " + kop[4]);
+  const staart = /EINDE CALLSHEET\s*#?\s*(\d{1,3})[^|\n]{0,4}[,\s]\s*([A-Za-zÀ-ÿ]+)\s+(\d{1,2})\s+([A-Za-zÀ-ÿ]+)\s+(20\d{2})/i.exec(t);
+
+  function maakDatum(dag: number, maandNaam: string, jaar: number | null) {
+    const maand = MAAND[String(maandNaam || "").toLowerCase()];
+    if (!maand) { uit.meldingen.push("maand niet herkend: " + maandNaam); return null; }
+    if (!jaar) { uit.meldingen.push("jaartal niet gevonden"); return null; }
+    return jaar + "-" + String(maand).padStart(2, "0") + "-" + String(dag).padStart(2, "0");
+  }
+
+  if (kop) uit.dd = +kop[1];
+  else if (staart) uit.dd = +staart[1];
+  else uit.meldingen.push("kopregel CALLSHEET #.. niet gevonden");
+
+  const jaarLos = (/EINDE CALLSHEET[^|]*\b(20\d{2})\b/i.exec(t) || [])[1];
+  const uitKop = kop ? maakDatum(+kop[3], kop[4], jaarLos ? +jaarLos : null) : null;
+  const uitStaart = staart ? maakDatum(+staart[3], staart[4], +staart[5]) : null;
+
+  if (uitStaart) {
+    uit.datum = uitStaart;
+    uit.weekdag = staart![2].toLowerCase();
+    if (uitKop && uitKop !== uitStaart) {
+      uit.meldingen.push("de datum in de kop (" + uitKop + ") wijkt af van de datum in de slotregel (" + uitStaart + "); de slotregel is aangehouden");
     }
-  } else {
-    uit.meldingen.push("kopregel CALLSHEET #.. niet gevonden");
+  } else if (uitKop) {
+    uit.datum = uitKop;
+    uit.weekdag = kop![2].toLowerCase();
   }
 
   uit.crewcall = tijd((/CREWCALL\s+(\d{1,2}:\d{2})/i.exec(t) || [])[1]);
