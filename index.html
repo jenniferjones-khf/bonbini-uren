@@ -169,6 +169,14 @@
     max-width:calc(100% - 28px)}
   .toast.fout{background:var(--rood)}
 
+  /* meldingsbalken bovenaan */
+  .banner{display:flex;gap:10px;align-items:flex-start;background:#fdf6e3;border:1px solid #e8d9a8;
+    border-radius:11px;padding:11px 13px;margin:14px 0 0;font-size:13px;line-height:1.45;color:#5c4a15}
+  .banner.info{background:#eef4fb;border-color:#c9dcf0;color:#274566}
+  .banner b{font-weight:600}
+  .banner button{margin-left:auto;flex:none;border:1px solid currentColor;background:transparent;
+    color:inherit;border-radius:8px;padding:5px 10px;font-size:12.5px;cursor:pointer}
+
   /* mijn gegevens */
   .gegevens{padding:16px 0 8px}
   .gegevens .blok{background:var(--wit);border:1px solid var(--lijn2);border-radius:11px;padding:14px 13px;margin-bottom:10px}
@@ -209,6 +217,7 @@
   </div>
 </nav>
 
+<div class="wrap" id="banners"></div>
 <nav class="weken" id="weeknav"><div class="wrap" id="weekbalk"></div></nav>
 
 <div class="wrap" id="inhoud"></div>
@@ -238,6 +247,15 @@ var DATA = null, RS = null, IK = null;
 
 // Het kilometertarief komt uit je eigen contract. Staat daar niets, dan valt het terug
 // op het tarief uit de regelset, zodat er nooit met nul gerekend wordt.
+// Vandaag volgens de server, niet volgens de telefoon van het crewlid. Een klok die
+// verkeerd staat mag geen dag openzetten die nog niet geweest is.
+function vandaagNu(){ return (DATA && DATA.vandaag) ? DATA.vandaag : new Date().toISOString().slice(0,10); }
+function nogNietGeweest(datum){ return datum > vandaagNu(); }
+// Zonder dagprijs valt er niets te rekenen. Dan tonen we geen bedragen van nul, want
+// dat leest als "je krijgt niets" terwijl het betekent "we weten het nog niet".
+function dagprijsBekend(){ return !!(IK && IK.dagprijs); }
+function bedragOfStreep(n){ return dagprijsBekend() ? eur(n) : '—'; }
+
 function kmTariefIk(){ return (IK && IK.kmTarief) ? IK.kmTarief : RS.kmPersonen; }
 function kmTekst(t){ return Number(t).toFixed(2).replace('.',','); }
 
@@ -436,6 +454,7 @@ function start(){
   document.getElementById('hFunctie').textContent=IK.functie||'';
   document.getElementById('hDag').textContent=IK.dagprijs?eur(IK.dagprijs):'nog niet ingevuld';
   document.getElementById('hUur').textContent=IK.dagprijs?eur(IK.dagprijs/10):'—';
+  bouwBanners();
   bouwWeken();
   bouwGegevens();
 }
@@ -580,7 +599,8 @@ function kiesModus(m){ MODUS=m; OPEN=null; bouwWeken(); }
 function dagKaart(d){
   var inv=INVOER[d.datum];
   var dicht=weekDicht(isoWeek(d.datum));
-  var open=(MODUS==='week'&&!dicht)||OPEN===d.datum;
+  var straks=nogNietGeweest(d.datum);
+  var open=(MODUS==='week'&&!dicht&&!straks)||OPEN===d.datum;
   var badges='';
   if(d.nacht) badges+=' <span class="badge b-nacht">nacht</span>';
   if(d.zondag) badges+=' <span class="badge b-zon">zondag</span>';
@@ -596,6 +616,7 @@ function dagKaart(d){
   if(inv){ bedrag=rekenVoor(d,inv).totaal; st='ingevuld'; leeg=''; }
   // Niet gewerkt is een antwoord, dus die dag is af en hoort niet als leeg te ogen.
   if(inv&&inv.nietGewerkt){ st='niet gewerkt'; }
+  if(straks&&!inv){ st='nog niet geweest'; }
 
   return '<div class="dag'+(open?' open':'')+'" id="dag_'+d.datum+'">'+
     '<div class="rij" onclick="klapOpen(\''+d.datum+'\')">'+
@@ -604,11 +625,19 @@ function dagKaart(d){
         '<div class="dtitel">'+datumLabel(d.datum)+badges+'</div>'+
         '<div class="dsub">'+esc(d.crewcall||'')+' – '+esc(d.wrap||'')+(d.locatie?' · '+esc(d.locatie):'')+'</div>'+
       '</div>'+
-      '<div class="status'+leeg+'"><div class="bed">'+eur(bedrag)+'</div><div class="st">'+st+'</div></div>'+
+      '<div class="status'+leeg+'"><div class="bed">'+(inv?bedragOfStreep(bedrag):'')+'</div><div class="st">'+st+'</div></div>'+
       '<div class="chev">›</div>'+
     '</div>'+
-    '<div class="form">'+(open?(dicht?slotHtml():formHtml(d)):'')+'</div>'+
+    '<div class="form">'+(open?(dicht?slotHtml():(straks?straksHtml(d):formHtml(d))):'')+'</div>'+
   '</div>';
+}
+
+// Een draaidag die nog moet komen laten we wel zien, met de tijden uit het callsheet,
+// maar zonder invulvelden. Vooruit invullen levert altijd cijfers op die niet kloppen.
+function straksHtml(d){
+  return '<div class="slot">Deze draaidag is nog niet geweest. Je kunt hem invullen vanaf '+
+    datumLabel(d.datum)+' zelf. De tijden uit het callsheet staan al klaar: '+
+    esc(d.crewcall||'?')+' tot '+esc(d.wrap||'?')+'.</div>';
 }
 
 function slotHtml(){
@@ -958,11 +987,12 @@ function werkVoetBij(w){
     tot+=rekenVoor(d,inv).totaal;
   });
   document.getElementById('vWeek').textContent=w.week;
-  document.getElementById('vTotaal').textContent=eur(tot);
+  document.getElementById('vTotaal').textContent=bedragOfStreep(tot);
   var dicht=weekDicht(w.week);
   var s=statusVanWeek(w.week);
-  document.getElementById('vSub').textContent =
-    gedaan+' van '+w.dagen.length+' dagen ingevuld · bedragen exclusief btw, bovenop je dagprijs';
+  document.getElementById('vSub').textContent = dagprijsBekend()
+    ? gedaan+' van '+w.dagen.length+' dagen ingevuld · bedragen exclusief btw, bovenop je dagprijs'
+    : gedaan+' van '+w.dagen.length+' dagen ingevuld · je dagprijs staat nog niet in het systeem, daarom rekenen we nog niets uit';
   var k=document.getElementById('vKnop');
   if(dicht){ k.disabled=true; k.textContent='Afgetikt'; return; }
   k.disabled = gedaan===0;
@@ -1033,6 +1063,36 @@ var GEG = [
   ['payrollsysteem','Payrollsysteem','text']
 ];
 
+// Meldingen bovenaan. Alleen tonen wat nu echt speelt; een balk die er altijd staat
+// leest niemand meer.
+var GEG_NODIG = [['straat','je adres'],['postcode','je postcode'],['iban','je IBAN']];
+
+function bouwBanners(){
+  var h='';
+
+  if(DATA.testdatum){
+    h+='<div class="banner"><div><b>Testronde.</b> De draaidagen hieronder komen uit oude '+
+       'callsheets, daarom staan er datums uit een ander seizoen. Dat klopt en ligt niet aan jou. '+
+       'Vul ze in alsof het deze week is.</div></div>';
+  }
+
+  var g=(IK&&IK.gegevens)||{};
+  var mist=GEG_NODIG.filter(function(f){ return !String(g[f[0]]||'').trim(); }).map(function(f){ return f[1]; });
+  if(mist.length){
+    var lijst = mist.length===1 ? mist[0] : mist.slice(0,-1).join(', ')+' en '+mist[mist.length-1];
+    h+='<div class="banner info"><div>We missen nog '+lijst+'. Zonder adres en postcode kunnen we '+
+       'je kilometers niet vooraf uitrekenen.</div>'+
+       '<button onclick="kiesTab(&quot;gegevens&quot;)">Invullen</button></div>';
+  }
+
+  if(!dagprijsBekend()){
+    h+='<div class="banner info"><div>Je dagprijs staat nog niet in het systeem, die lezen we uit je '+
+       'contract. Je kunt je dagen gewoon invullen; de bedragen verschijnen zodra hij er staat.</div></div>';
+  }
+
+  document.getElementById('banners').innerHTML=h;
+}
+
 function bouwGegevens(){
   var g=IK.gegevens||{};
   var h='<p class="uitleg">Deze gegevens hebben we nodig voor je contract, je declaraties en je kilometervergoeding. '+
@@ -1072,6 +1132,7 @@ async function bewaarGegevens(){
   try{
     await post({actie:'gegevens', gegevens:uit});
     IK.gegevens=uit;
+    bouwBanners();
     melding('Je gegevens zijn bijgewerkt.');
   }catch(e){
     melding('Opslaan lukte niet: '+e.message, true);
