@@ -222,6 +222,7 @@
       <div class="sub" id="vSub"></div>
     </div>
     <button id="vKnop" onclick="dienIn()">Week indienen</button>
+      <button id="vMail" class="knop sec" style="margin-left:8px" onclick="stuurWeekoverzicht()">Mail mij dit overzicht</button>
   </div>
 </div>
 
@@ -244,6 +245,8 @@ function kmTekst(t){ return Number(t).toFixed(2).replace('.',','); }
 // Allebei mag; deze stand bepaalt of de dagen los openklappen of allemaal tegelijk
 // openstaan met een knop om ze in een keer op te slaan.
 var MODUS = 'dag';
+// Wat het systeem per dag aan kilometers uitrekende, zodat we het kunnen meesturen.
+var BEREKEND = {};
 var INVOER = {};          // datum -> ingevulde velden
 var WEKEN = {};           // weeknummer -> weekstaat
 var ACTIEVEWEEK = null, OPEN = null, TAB = 'uren';
@@ -563,8 +566,12 @@ function toonWeek(w){
        '</div>';
   }
   document.getElementById('inhoud').innerHTML=h;
-  if(MODUS==='week' && !dicht) w.dagen.forEach(function(d){ herbereken(d.datum); });
-  else if(OPEN) herbereken(OPEN);
+  if(MODUS==='week' && !dicht){
+    w.dagen.forEach(function(d){ herbereken(d.datum); haalAfstand(d.datum, false); });
+  } else if(OPEN){
+    herbereken(OPEN);
+    haalAfstand(OPEN, false);
+  }
   werkVoetBij(w);
 }
 
@@ -634,6 +641,7 @@ function veld(id,naam,label,waarde,type){
 function formHtml(d){
   var id=d.datum;
   var vervoerNu=v(d,'vervoer','');
+  var vertrekNu=v(d,'vertrekpunt','Mijn woonadres');
   return ''+
   '<div class="callsheetregel">↳ <div>Uit het callsheet: crewcall <b>'+esc(d.crewcall||'')+'</b>, geplande wrap <b>'+esc(d.wrap||'')+'</b>'+
     (d.lunch?', lunch '+esc(d.lunch):'')+(d.locatie?', locatie <b>'+esc(d.locatie)+'</b>':'')+
@@ -665,11 +673,24 @@ function formHtml(d){
           return '<option value="'+o+'"'+(vervoerNu===o?' selected':'')+'>'+o+'</option>';
         }).join('')+
       '</select></label>'+
+    '<label class="v" style="margin-bottom:9px"><span class="n">Waar kwam je vandaan?</span>'+
+      '<select id="f_'+id+'_vertrekpunt" onchange="vertrekpuntGewijzigd(\''+id+'\')">'+
+        vertrekOpties(d).map(function(o){
+          return '<option value="'+o+'"'+(vertrekNu===o?' selected':'')+'>'+vertrekLabel(o,d)+'</option>';
+        }).join('')+
+      '</select></label>'+
+    (vertrekNu==='Ander adres'
+      ? '<label class="v" style="margin-bottom:9px"><span class="n">Adres waar je vandaan kwam</span>'+
+        '<input type="text" id="f_'+id+'_anderVertrekadres" value="'+esc(v(d,'anderVertrekadres',''))+'" '+
+        'placeholder="Straat 12, Amsterdam" onchange="vertrekpuntGewijzigd(\''+id+'\')"></label>'
+      : '')+
     '<div class="grid">'+
       veld(id,'km','Km retour',v(d,'km',''),'getal')+
       '<label class="v"><span class="n">Kmtarief</span><input class="auto" type="text" id="tar_'+id+'" value="" readonly></label>'+
       veld(id,'parkeer','Parkeren (€)',v(d,'parkeer',''),'getal')+
-    '</div></div>'+
+    '</div>'+
+    '<div class="kmuitleg" id="kmuitleg_'+id+'" style="color:#6b7280;font-size:12.5px;margin-top:7px"></div>'+
+    '</div>'+
 
   '<div class="veldgroep"><div class="kop">Toelichting</div>'+
     '<textarea id="f_'+id+'_opmerking" oninput="herbereken(\''+id+'\')" '+
@@ -684,6 +705,53 @@ function formHtml(d){
   '</div>';
 }
 
+// Welke vertrekpunten mag je kiezen op deze dag. Hotel alleen als het callsheet er een
+// noemt, anders zou je een keuze zien die nergens toe leidt.
+function vertrekOpties(d){
+  var o=['Mijn woonadres'];
+  if(d.hotel) o.push('Hotel');
+  o.push('Ander adres');
+  return o;
+}
+function vertrekLabel(o,d){
+  if(o==='Mijn woonadres') return (IK.gegevens&&IK.gegevens.vastVertrekpunt) ? 'Mijn vaste vertrekpunt' : 'Mijn woonadres';
+  if(o==='Hotel') return 'Hotel: '+(d.hotel||'');
+  return 'Ander adres, eenmalig';
+}
+
+// De kilometers laten uitrekenen en alvast invullen. Iemand die zelf al iets heeft
+// ingevuld overschrijven we niet; dan zetten we het berekende getal er alleen naast.
+async function haalAfstand(datum, overschrijf){
+  var d=DATA.draaidagen.filter(function(x){return x.datum===datum;})[0];
+  if(!d) return;
+  var el=document.getElementById('f_'+datum+'_km');
+  var mel=document.getElementById('kmuitleg_'+datum);
+  if(mel) mel.textContent='Kilometers opzoeken…';
+  var keuze=(document.getElementById('f_'+datum+'_vertrekpunt')||{}).value||'Mijn woonadres';
+  var adresEl=document.getElementById('f_'+datum+'_anderVertrekadres');
+  try{
+    var r=await post({actie:'afstand', datum:datum, vertrekpunt:keuze, anderVertrekadres:adresEl?adresEl.value:''});
+    if(r.km!=null){
+      BEREKEND[datum]=r.km;
+      if(el && (overschrijf || !String(el.value).trim())) el.value=r.km;
+      if(mel) mel.textContent='Berekend vanaf '+(r.van||'je adres')+': '+r.km+' km heen en terug'+
+        (r.bron==='schatting'?' (schatting, controleer even)':'')+'. Klopt het niet, pas het aan.';
+    } else {
+      BEREKEND[datum]=null;
+      if(mel) mel.textContent=r.reden||'Kilometers niet te berekenen, vul ze zelf in.';
+    }
+  }catch(e){
+    if(mel) mel.textContent='Kilometers niet op te halen, vul ze zelf in.';
+  }
+  herbereken(datum);
+}
+function vertrekpuntGewijzigd(datum){
+  var d=DATA.draaidagen.filter(function(x){return x.datum===datum;})[0];
+  INVOER[datum]=Object.assign({}, INVOER[datum]||{}, leesForm(datum));
+  bouwWeken();
+  haalAfstand(datum, true);
+}
+
 function leesForm(datum){
   function g(n){var e=document.getElementById('f_'+datum+'_'+n);return e?e.value:'';}
   var ng=document.getElementById('ng_'+datum);
@@ -692,6 +760,8 @@ function leesForm(datum){
     reisHeenVertrek:g('reisHeenVertrek'), reisHeenAankomst:g('reisHeenAankomst'),
     reisTerugVertrek:g('reisTerugVertrek'), reisTerugThuis:g('reisTerugThuis'),
     km:g('km'), parkeer:g('parkeer'), opmerking:g('opmerking'), vervoer:g('vervoer'),
+    vertrekpunt:g('vertrekpunt')||'Mijn woonadres', anderVertrekadres:g('anderVertrekadres'),
+    kmBerekend: BEREKEND[datum]==null?'':BEREKEND[datum],
     nietGewerkt: ng?ng.checked:false
   };
 }
@@ -899,6 +969,32 @@ function werkVoetBij(w){
   k.textContent = s==='Ingediend' ? 'Opnieuw indienen' : (gedaan<w.dagen.length ? 'Week indienen ('+gedaan+'/'+w.dagen.length+')' : 'Week indienen');
 }
 
+// Het overzicht van deze week naar je eigen mailadres. Handig als je het naast je
+// factuur wilt leggen. Dit is geen goedkeuring; die komt pas na het aftikken.
+async function stuurWeekoverzicht(){
+  var w=weekIndeling().filter(function(x){return x.week===ACTIEVEWEEK;})[0];
+  if(!w) return;
+  var knop=document.getElementById('vMail');
+  var regels=['Week '+w.week+', '+periodeLabel(w.dagen)+'',''];
+  var tot=0;
+  w.dagen.forEach(function(d){
+    var inv=INVOER[d.datum];
+    if(!inv){ regels.push(datumLabel(d.datum)+': nog niet ingevuld'); return; }
+    if(inv.nietGewerkt){ regels.push(datumLabel(d.datum)+': niet gewerkt'); return; }
+    var r=rekenVoor(d,inv);
+    tot+=r.totaal;
+    regels.push(datumLabel(d.datum)+': '+inv.start+' tot '+inv.eind+', '+u(r.c.gewerkteUren)+', extra '+eur(r.totaal));
+  });
+  regels.push('');
+  regels.push('Totaal extra deze week: '+eur(tot)+', exclusief btw en bovenop je dagprijs.');
+  if(knop){ knop.disabled=true; knop.textContent='Versturen…'; }
+  try{
+    var d=await post({actie:'weekoverzicht', tekst:regels.join('\n')});
+    melding(d.ok ? 'Het overzicht komt eraan in je mail.' : (d.reden||'Versturen lukte niet.'), !d.ok);
+  }catch(e){ melding('Versturen lukte niet: '+e.message, true); }
+  finally{ if(knop){ knop.disabled=false; knop.textContent='Mail mij dit overzicht'; } }
+}
+
 async function dienIn(){
   var k=document.getElementById('vKnop');
   var w=ACTIEVEWEEK;
@@ -922,6 +1018,7 @@ var GEG = [
   ['straat','Straat en huisnummer','text'],
   ['postcode','Postcode','text'],
   ['woonplaats','Woonplaats','text'],
+  ['vastVertrekpunt','Vertrek je vast vanaf een andere plek dan huis? (bv. de loods)','text'],
   ['telefoon','Telefoonnummer','text'],
   ['geboortedatum','Geboortedatum (jjjj-mm-dd)','text'],
   ['iban','IBAN','text'],
@@ -941,10 +1038,10 @@ function bouwGegevens(){
   var h='<p class="uitleg">Deze gegevens hebben we nodig voor je contract, je declaraties en je kilometervergoeding. '+
         'Alleen de productie ziet ze. Je kunt ze altijd bijwerken; er ontstaat geen tweede regel.</p>';
   h+='<div class="blok"><div class="kop">Jij</div><div class="grid">';
-  GEG.slice(0,9).forEach(function(f){ h+=gegVeld(f,g); });
+  GEG.slice(0,10).forEach(function(f){ h+=gegVeld(f,g); });
   h+='</div></div>';
   h+='<div class="blok"><div class="kop">Zakelijk</div><div class="grid">';
-  GEG.slice(9).forEach(function(f){ h+=gegVeld(f,g); });
+  GEG.slice(10).forEach(function(f){ h+=gegVeld(f,g); });
   h+='</div></div>';
   h+='<div class="acties" style="margin-bottom:26px"><button class="knop prim" id="gegKnop" onclick="bewaarGegevens()">Gegevens opslaan</button></div>';
   document.getElementById('gegevensblok').innerHTML=h;
