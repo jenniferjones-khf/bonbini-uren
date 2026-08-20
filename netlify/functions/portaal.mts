@@ -30,6 +30,7 @@ const F = {
     functie: "fld9EwU9tcPC3Rd70",
     email: "fldClEi5WxnJfpmFI",
     dagprijs: "fld1LOYLGgIt8AHeH",
+    kmTarief: "fld2BrRp6HJm8KAia",
     groot: "fld5MNLx0vqEeMxRG",
     otRegelset: "fldmgj93afhMKBD0q",
     actief: "fldl49e40hA0LnwF9",
@@ -133,7 +134,10 @@ const RS = {
   turnaroundPct: 150,
   vrijeNachtenPct: 10,
   zondagVrijPct: 10,
-  kmPersonen: 0.23,
+  // Terugval voor de kilometervergoeding. Het echte tarief staat per persoon in het
+  // contract en komt via het veld Km tarief in de Crew-tabel binnen; dit getal geldt
+  // alleen als daar niets staat. Alle huidige contracten hebben 0,25.
+  kmPersonen: 0.25,
   kmMateriaal: 0.32,
   lunchVast: 45,
   geplandePerBlok: { NL: 21, OOS: 7 },
@@ -370,6 +374,7 @@ async function haalAlles(crewId: string) {
       functie: crewRec.fields[F.crew.functie] || "",
       email: crewRec.fields[F.crew.email] || "",
       dagprijs: crewRec.fields[F.crew.dagprijs] || 0,
+      kmTarief: getal(crewRec.fields[F.crew.kmTarief]) || RS.kmPersonen,
       groot: !!crewRec.fields[F.crew.groot],
       otRegelset: crewRec.fields[F.crew.otRegelset] !== false,
       gegevens: {
@@ -426,6 +431,13 @@ function weekOpSlot(weken: any[], datum: string) {
   const rec = weken.filter((x) => x.week === w.week && x.jaar === w.jaar)[0];
   if (!rec) return false;
   return rec.status === "Akkoord" || rec.status === "Verwerkt";
+}
+
+// Het tarief per kilometer staat in het contract en verschilt dus per persoon. In de
+// urenregel leggen we vast welk tarief er is gebruikt, zodat later te zien is waar een
+// bedrag vandaan komt en niemand hoeft te gokken.
+function kmLabel(tarief: number, materiaal: boolean) {
+  return (materiaal ? "materiaal " : "personen ") + Number(tarief).toFixed(2).replace(".", ",");
 }
 
 async function bewaarDag(crewId: string, body: any) {
@@ -498,7 +510,7 @@ async function bewaarDag(crewId: string, body: any) {
     [F.uur.reisTerugVertrek]: String(body.reisTerugVertrek || ""),
     [F.uur.reisTerugThuis]: String(body.reisTerugThuis || ""),
     [F.uur.km]: km,
-    [F.uur.kmTarief]: materiaal ? "materiaal 0,32" : "personen 0,23",
+    [F.uur.kmTarief]: kmLabel(materiaal ? RS.kmMateriaal : alles.ik.kmTarief, materiaal),
     [F.uur.parkeer]: Math.max(0, getal(body.parkeer)),
     [F.uur.opmerking]: String(body.opmerking || ""),
     [F.uur.setlocatie]: dag.locatie || "",
@@ -569,7 +581,7 @@ async function dienWeekIn(crewId: string, weeknummer: number) {
       eind: u.eind,
       reisuren: reisurenUit(u),
       km: u.km,
-      kmTarief: materiaal ? RS.kmMateriaal : RS.kmPersonen,
+      kmTarief: materiaal ? RS.kmMateriaal : alles.ik.kmTarief,
       zondag: dag.zondag,
     });
     const nachtVrij = dag.nacht && alles.inbegrepen.nachten[u.datum];
