@@ -10,6 +10,7 @@
 // welke draaidag het hoort.
 
 import { extractText, getDocumentProxy } from "unpdf";
+import { geocode } from "./afstand.mts";
 
 const APP_KEY = "rnxxpzxpwl2aawz";
 const MAP = "/BON BINI JETZT GEHT'S LOS/CALLSHEETS";
@@ -34,6 +35,9 @@ const F = {
   rev: "fldXcO3cTd4PN4Z8K",
   controleren: "fldB1MM160pbzJtrg",
   melding: "fldPR9hTpeswJ5Csx",
+  crewOpCallsheet: "fldB2LljUvMl7OOrF",
+  hotel: "fldXBWRWoyggKJNug",
+  coordinatenSet: "fld51k1JqqFLe8rEY",
 };
 
 const MAAND: Record<string, number> = {
@@ -184,6 +188,32 @@ export function leesCallsheet(tekst: string, bestandsnaam: string) {
   }
   if (!uit.setadres) uit.meldingen.push("setadres niet gevonden, vul het handmatig aan voor de kilometerberekening");
 
+  // De crewregel. Op het callsheet staat bovenin CREW (40) en verderop de rij namen,
+  // alleen voornamen, door komma's gescheiden. Die rij hebben we nodig om te weten wie
+  // er die dag op set was, zodat de weekmails niet naar de hele ploeg gaan.
+  const aantal = /\bCREW\s*\((\d{1,3})\)/i.exec(t);
+  const alineas = t.split(/\n+/).map((r) => r.trim());
+  const rijen = alineas.filter((r) => (r.match(/,/g) || []).length >= 4 && /^[A-ZÀ-Ý]/.test(r) && !/[:@]/.test(r) && r.length < 900);
+  if (rijen.length) {
+    // De langste rij namen is de crewregel; de kortere zijn extra crew en cast.
+    const beste = rijen.slice().sort((a, b) => (b.match(/,/g) || []).length - (a.match(/,/g) || []).length)[0];
+    const namen = beste.split(",").map((n) => n.trim()).filter((n) => n.length > 1 && /^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ' -]*$/.test(n));
+    if (namen.length >= 5) {
+      uit.crew = namen;
+      if (aantal && Math.abs(namen.length - +aantal[1]) > 2) {
+        uit.meldingen.push("het callsheet noemt " + aantal[1] + " crew maar ik lees er " + namen.length + "; controleer de crewregel");
+      }
+    }
+  }
+  if (!uit.crew) uit.meldingen.push("crewregel niet gevonden, de weekmails gaan voor deze dag naar iedereen");
+
+  // Het hotel, als er die dag overnacht wordt. Staat er meestal als "Hotel: naam, adres"
+  // in de legenda onder het transportschema.
+  const hotelRegel = /Hotel:\s*([^\n]{8,160})/i.exec(t);
+  const hotelZin = /overnacht(?:en)?\s+in\s+hotel\s+([^\n.]{8,160})/i.exec(t);
+  const hotelRuw = (hotelRegel ? hotelRegel[1] : hotelZin ? hotelZin[1] : "").split(/[☉◉★|]/)[0].replace(/\s+/g, " ").trim();
+  if (/\d/.test(hotelRuw) && hotelRuw.indexOf(",") > -1) uit.hotel = hotelRuw.replace(/^\(|\)$/g, "");
+
   // Nachtdraaidag: de dag loopt door tot na middernacht en er wordt daarna ook echt
   // nog gedraaid. Een wrap om precies 00:00 levert nul nachturen op en telt dus niet.
   const c = minuten(uit.crewcall), w = minuten(uit.wrap);
@@ -204,6 +234,9 @@ function velden(p: any, rev: string, vandaag: string) {
   if (p.lunch) f[F.lunch] = p.lunch;
   if (p.locatie) f[F.locatie] = p.locatie;
   if (p.setadres) f[F.setadres] = p.setadres;
+  if (p.coordinatenSet) f[F.coordinatenSet] = p.coordinatenSet;
+  if (p.hotel) f[F.hotel] = p.hotel;
+  if (p.crew) f[F.crewOpCallsheet] = p.crew.join(", ");
   f[F.nacht] = !!p.nacht;
   f[F.zondag] = !!p.zondag;
   f[F.bron] = p.bron;
@@ -247,6 +280,18 @@ export async function verwerk() {
     if (!p.datum) {
       overgeslagen.push(b.name + " (geen datum in het callsheet gevonden)");
       continue;
+    }
+
+    // Het setadres omzetten in coördinaten, zodat het portaal later de kilometers kan
+    // uitrekenen zonder dat elk crewlid opnieuw hetzelfde adres laat opzoeken.
+    if (p.setadres) {
+      try {
+        const punt = await geocode(p.setadres);
+        if (punt) p.coordinatenSet = punt.lat + "," + punt.lon;
+        else p.meldingen.push("setadres niet op de kaart gevonden, geen kilometerberekening voor deze dag");
+      } catch {
+        p.meldingen.push("setadres niet op de kaart gevonden, geen kilometerberekening voor deze dag");
+      }
     }
 
     const f = velden(p, b.rev, vandaag);
