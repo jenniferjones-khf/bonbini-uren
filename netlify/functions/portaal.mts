@@ -14,6 +14,8 @@
 const BASE = "app4HQkMqFpZCnqpv";
 const API = "https://api.airtable.com/v0/" + BASE;
 
+import { afstandKm, retour } from "./afstand.mts";
+
 const T = {
   crew: "tblpaxWdwaY6XbPbT",
   uren: "tblRxNpruBfkT5NR3",
@@ -31,6 +33,10 @@ const F = {
     email: "fldClEi5WxnJfpmFI",
     dagprijs: "fld1LOYLGgIt8AHeH",
     kmTarief: "fld2BrRp6HJm8KAia",
+    vastVertrekpunt: "fldTEKWR0XnJSnwFb",
+    coordinaten: "fldfv9BQZqNffgxPk",
+    stuurWeekoverzicht: "fldbyqBPJdyTlllQI",
+    weekoverzichtTekst: "flda9BHKOkNj9HWTP",
     groot: "fld5MNLx0vqEeMxRG",
     otRegelset: "fldmgj93afhMKBD0q",
     actief: "fldl49e40hA0LnwF9",
@@ -61,6 +67,8 @@ const F = {
     nacht: "fldCfhVnog1LVeFcQ",
     zondag: "fldQuMgnrDlXf62WH",
     setadres: "fldofXLLEY8m9sFsi",
+    hotel: "fldXBWRWoyggKJNug",
+    coordinatenSet: "fld51k1JqqFLe8rEY",
   },
   uur: {
     nietGewerkt: "fldZZUJl3ypFGL4Zz",
@@ -71,6 +79,9 @@ const F = {
     eind: "fld6AlZUx8KdMQ3C2",
     pauze: "fldSMeHoGNVfawmK5",
     setlocatie: "fldpS0lkLP9hVCo8G",
+    vertrekpunt: "fldbubsPSTnUhvGig",
+    anderVertrekadres: "fld7OAt0bomxfAg0u",
+    kmBerekend: "fldzro4YTlUMBUos5",
     nacht: "fldTjhNf1lgUbVLqS",
     zondag: "fldPjJGAM322yOG84",
     reisHeenVertrek: "fldomLqJKHZB3oaLX",
@@ -341,6 +352,8 @@ async function haalAlles(crewId: string) {
       lunch: r.fields[F.dag.lunch],
       locatie: r.fields[F.dag.locatie],
       setadres: r.fields[F.dag.setadres],
+      hotel: r.fields[F.dag.hotel] || "",
+      setBekend: !!(r.fields[F.dag.coordinatenSet] || r.fields[F.dag.setadres]),
       nacht: !!r.fields[F.dag.nacht],
       zondag: !!r.fields[F.dag.zondag],
     }))
@@ -391,6 +404,7 @@ async function haalAlles(crewId: string) {
         kvk: crewRec.fields[F.crew.kvk] || "",
         payrollsysteem: crewRec.fields[F.crew.payrollsysteem] || "",
         kenteken: crewRec.fields[F.crew.kenteken] || "",
+        vastVertrekpunt: crewRec.fields[F.crew.vastVertrekpunt] || "",
         noodcontact: crewRec.fields[F.crew.noodcontact] || "",
         iban: crewRec.fields[F.crew.iban] || "",
       },
@@ -406,6 +420,9 @@ async function haalAlles(crewId: string) {
       reisTerugVertrek: r.fields[F.uur.reisTerugVertrek] || "",
       reisTerugThuis: r.fields[F.uur.reisTerugThuis] || "",
       km: r.fields[F.uur.km] || "",
+      vertrekpunt: r.fields[F.uur.vertrekpunt] || "",
+      anderVertrekadres: r.fields[F.uur.anderVertrekadres] || "",
+      kmBerekend: r.fields[F.uur.kmBerekend] || null,
       vervoer: (r.fields[F.uur.vervoer] || {}).name || "",
       parkeer: r.fields[F.uur.parkeer] || "",
       opmerking: r.fields[F.uur.opmerking] || "",
@@ -510,6 +527,9 @@ async function bewaarDag(crewId: string, body: any) {
     [F.uur.reisTerugVertrek]: String(body.reisTerugVertrek || ""),
     [F.uur.reisTerugThuis]: String(body.reisTerugThuis || ""),
     [F.uur.km]: km,
+    [F.uur.vertrekpunt]: String(body.vertrekpunt || "Mijn woonadres"),
+    [F.uur.anderVertrekadres]: String(body.anderVertrekadres || ""),
+    [F.uur.kmBerekend]: getal(body.kmBerekend) || null,
     [F.uur.kmTarief]: kmLabel(materiaal ? RS.kmMateriaal : alles.ik.kmTarief, materiaal),
     [F.uur.parkeer]: Math.max(0, getal(body.parkeer)),
     [F.uur.opmerking]: String(body.opmerking || ""),
@@ -518,7 +538,12 @@ async function bewaarDag(crewId: string, body: any) {
     [F.uur.zondag]: !!dag.zondag,
     [F.uur.nietGewerkt]: false,
   };
-  if (vervoer) velden[F.uur.vervoer] = vervoer; velden["fldmbytC1V67nTCRP"] = materiaal ? "Afwijking" : "Open";
+  if (vervoer) velden[F.uur.vervoer] = vervoer;
+  // Meer kilometers claimen dan berekend mag, maar boven een flinke marge kijkt de
+  // productie er bij het aftikken naar. Minder invullen geeft nooit een melding.
+  const berekend = getal(body.kmBerekend);
+  const kmVeelHoger = berekend > 0 && km > berekend * 1.25 && km - berekend > 20;
+  velden["fldmbytC1V67nTCRP"] = materiaal || kmVeelHoger ? "Afwijking" : "Open";
 
   if (bestaand) {
     await at("/" + T.uren + "/" + bestaand.id, { method: "PATCH", body: JSON.stringify({ fields: velden, typecast: true }) });
@@ -649,6 +674,62 @@ async function dienWeekIn(crewId: string, weeknummer: number) {
 
 // Eigen gegevens bijwerken. Schrijft in het eigen crewrecord, dus er ontstaat nooit
 // een tweede regel voor dezelfde persoon.
+// Hoeveel kilometer is deze draaidag, heen en terug? Het scherm vraagt dit zodra een
+// draaidag opengaat en zodra iemand een ander vertrekpunt kiest, en vult het antwoord
+// alvast in als kilometerstand. Aanpassen mag altijd.
+async function berekenAfstand(crewId: string, body: any) {
+  const datum = String(body.datum || "");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(datum)) return { ok: false, reden: "ongeldige datum" };
+
+  const crewRec: any = await at("/" + T.crew + "/" + crewId + "?returnFieldsByFieldId=true");
+  const dagen = await alleRecords(T.draaidagen, "?returnFieldsByFieldId=true&pageSize=100");
+  const dag: any = dagen.filter((d: any) => d.fields[F.dag.datum] === datum)[0];
+  if (!dag) return { ok: false, reden: "die draaidag ken ik niet" };
+
+  const naar = dag.fields[F.dag.coordinatenSet] || dag.fields[F.dag.setadres] || "";
+  if (!naar) return { ok: true, km: null, reden: "op dit callsheet staat geen setadres, vul je kilometers zelf in" };
+
+  const keuze = String(body.vertrekpunt || "Mijn woonadres");
+  const thuis = [
+    crewRec.fields[F.crew.straat],
+    [crewRec.fields[F.crew.postcode], crewRec.fields[F.crew.woonplaats]].filter(Boolean).join(" "),
+  ].filter(Boolean).join(", ");
+  const vast = String(crewRec.fields[F.crew.vastVertrekpunt] || "").trim();
+
+  let van = "";
+  if (keuze === "Ander adres") van = String(body.anderVertrekadres || "").trim();
+  else if (keuze === "Hotel") van = String(dag.fields[F.dag.hotel] || "").trim();
+  else van = vast || thuis;
+
+  if (!van) {
+    return {
+      ok: true, km: null,
+      reden: keuze === "Ander adres" ? "vul eerst het adres in waar je die dag vandaan kwam"
+        : keuze === "Hotel" ? "op dit callsheet staat geen hotel"
+        : "je woonadres staat nog niet bij Mijn gegevens, vul dat aan dan reken ik het uit",
+    };
+  }
+
+  const r = await afstandKm(van, naar);
+  if (r.km == null) return { ok: true, km: null, reden: r.melding || "adres niet gevonden" };
+  return { ok: true, km: retour(r.km), bron: r.bron, van, melding: r.melding || "" };
+}
+
+// Het weekoverzicht dat iemand zelf opvraagt. Het scherm heeft de regels al berekend en
+// stuurt ze mee; wij zetten ze klaar en vinken aan, waarna de automatisering mailt.
+async function weekoverzicht(crewId: string, body: any) {
+  const tekst = String(body.tekst || "").slice(0, 8000);
+  if (!tekst.trim()) return { ok: false, reden: "er is nog niets ingevuld om te sturen" };
+  await at("/" + T.crew + "/" + crewId, {
+    method: "PATCH",
+    body: JSON.stringify({
+      fields: { [F.crew.weekoverzichtTekst]: tekst, [F.crew.stuurWeekoverzicht]: true },
+      typecast: true,
+    }),
+  });
+  return { ok: true };
+}
+
 async function bewaarGegevens(crewId: string, body: any) {
   const g = body.gegevens || {};
   const velden: any = {};
@@ -666,6 +747,7 @@ async function bewaarGegevens(crewId: string, body: any) {
     ["kvk", F.crew.kvk],
     ["payrollsysteem", F.crew.payrollsysteem],
     ["kenteken", F.crew.kenteken],
+    ["vastVertrekpunt", F.crew.vastVertrekpunt],
     ["noodcontact", F.crew.noodcontact],
     ["iban", F.crew.iban],
   ];
@@ -704,6 +786,8 @@ export default async (req: Request) => {
       if (body.actie === "week") return json(await dienWeekIn(t, +body.week));
       if (body.actie === "gegevens") return json(await bewaarGegevens(t, body));
       if (body.actie === "wis") return json(await wisDagRecord(t, body));
+      if (body.actie === "afstand") return json(await berekenAfstand(t, body));
+      if (body.actie === "weekoverzicht") return json(await weekoverzicht(t, body));
       return json({ fout: "onbekende actie" }, 400);
     }
 
