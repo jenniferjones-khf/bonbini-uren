@@ -127,6 +127,114 @@ function minuten(t: string | null) {
   return d[0] * 60 + d[1];
 }
 
+// ------------------------------------------------------------------ adressen
+//
+// Belangrijk om te weten: unpdf levert de tekst van een callsheet als EEN lange regel.
+// Er zitten geen regeleindes in. Alles wat op losse regels zocht, vond daarom niets.
+// Daarom zoeken we hieronder op de platte tekst, met posities in plaats van regels.
+
+// Plaatsnaam: normaal een woord. Alleen bij "Den Haag", "Sint Michielsgestel" en
+// dergelijke hoort het tweede woord erbij. Meer woorden pakken we bewust niet, want in
+// het callsheet staan de adressen achter elkaar en dan loopt de plaatsnaam zo door in
+// de volgende straatnaam.
+const PLAATS = "[A-ZÀ-Ý][a-zà-ÿ]+(?:[ -](?:Haag|Bosch|Helder|Burg|Zoom|Rijn|IJssel|Michielsgestel|Ambacht|Aa|Zand))?";
+const ADRES = new RegExp(",\\s*(\\d{4}\\s?[A-Z]{2})\\s+(" + PLAATS + ")", "g");
+
+// Woorden die zonder hoofdletter in een straatnaam mogen staan.
+const TUSSEN = /^(van|de|der|den|op|aan|het|ter|te|in|'t|bij)$/i;
+
+// De straat staat vóór de komma. We lopen van het huisnummer terug zolang de woorden
+// op een straatnaam lijken, en stoppen bij het eerste woord dat dat niet is. Zo pikken
+// we "Houtlaan 247" uit "... 21:45 uur Houtlaan 247" zonder het woord "uur" mee te nemen.
+export function straatVoor(stuk: string) {
+  const woorden = stuk.replace(/([()|:;])/g, " $1 ").replace(/\s+/g, " ").trim().split(" ");
+  let i = woorden.length - 1;
+  if (!/^\d+[a-zA-Z]?(?:[-\/]\d*[a-zA-Z]?)?$/.test(woorden[i] || "")) return "";
+  const uit = [woorden[i]];
+  let namen = 0;
+  for (i--; i >= 0 && uit.length < 7; i--) {
+    const w = woorden[i];
+    if (/[()|:;,]/.test(w)) break;
+    if (namen > 0 && (/^\d{1,2}(e|de|ste)$/i.test(w) || TUSSEN.test(w))) { uit.unshift(w); continue; }
+    if (/^[A-ZÀ-Ý][A-Za-zÀ-ÿ'’.\-]*$/.test(w)) { uit.unshift(w); namen++; continue; }
+    break;
+  }
+  return namen ? uit.join(" ") : "";
+}
+
+// Alle adressen in het document, op volgorde, met de plek waar ze staan.
+export function adressen(t: string) {
+  const uit: { adres: string; index: number }[] = [];
+  const re = new RegExp(ADRES.source, "g");
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(t))) {
+    const straat = straatVoor(t.slice(Math.max(0, m.index - 90), m.index));
+    if (!straat) continue;
+    uit.push({ adres: straat + ", " + m[1] + " " + m[2], index: m.index - straat.length });
+  }
+  return uit;
+}
+
+// Adressen die nooit het setadres zijn: het productiekantoor, de huisartsenpost, de
+// spoedeisende hulp, het kantoor van de opdrachtgever en de vaste verhuurders.
+const GEEN_SET = /Krom Boomssloot|Oudezijds Voorburgwal|Karperstraat|Molewaterplein|Wijnhaven|Hexaanweg|Katendrechtse/i;
+
+// Het setadres. Op het callsheet staan de labels (★ SET, ☉ HOLDING, ◉ BASECAMP) in de
+// ene kolom en de adressen in de andere. In de platte tekst komen die adressen als
+// rijtje terug, meteen na de kopregel "CALLSHEET #01 - MAANDAG 23 FEBRUARI", in de
+// volgorde van de labels. Het eerste adres na die kopregel is dus het setadres.
+export function zoekSetadres(t: string) {
+  // 1. Het adres staat op dezelfde plek als het sterretje met SET.
+  const inline = /★[ \t]*SET[ \t]+([^\n★☉◉]{6,120})/.exec(t);
+  if (inline) {
+    const dichtbij = adressen(inline[1]);
+    if (dichtbij.length && !GEEN_SET.test(dichtbij[0].adres)) return dichtbij[0].adres;
+  }
+
+  const lijst = adressen(t);
+
+  // 2. Het eerste adres na de kopregel met het callsheetnummer.
+  const kop = /CALLSHEET\s*#\s*\d{1,3}\s*[-–]/i.exec(t);
+  if (kop) {
+    const na = lijst.filter((a) => a.index > kop.index && a.index < kop.index + 400 && !GEEN_SET.test(a.adres));
+    if (na.length) return na[0].adres;
+  }
+
+  // 3. Laatste kans: het eerste adres in het document dat geen kantoor, hotel of
+  // ziekenhuis is. Liever een adres om te controleren dan helemaal geen adres.
+  const rest = lijst.filter((a) => !GEEN_SET.test(a.adres));
+  return rest.length ? rest[0].adres : "";
+}
+
+// Het hotel, als er die dag overnacht wordt. Naam plus het eerstvolgende adres.
+export function zoekHotel(t: string) {
+  const m = /hotel\s+([A-Z][A-Za-zÀ-ÿ'’.\- ]{2,40}?)\s*[,(]/.exec(t);
+  if (!m) return { naam: "", adres: "" };
+  const naam = m[1].replace(/\s+/g, " ").trim();
+  // Het adres moet vlak achter de naam staan. Staat er niets (op sommige callsheets is
+  // het haakje leeg), dan pakken we NIET het eerstvolgende adres verderop, want dat is
+  // de huisartsenpost. Liever alleen de naam dan een verkeerd adres.
+  const dichtbij = adressen(t.slice(m.index, m.index + 110)).filter((a) => !/Wijnhaven|Molewaterplein|Krom Boomssloot/i.test(a.adres));
+  return { naam, adres: dichtbij.length ? dichtbij[0].adres : "" };
+}
+
+// De crewregel. Op het callsheet staan de namen van crew, extra crew en cast achter
+// elkaar, direct onder de zonnetijden. Alleen voornamen, met komma's ertussen, en soms
+// twee namen aan elkaar geplakt omdat de kolommen in de PDF naast elkaar staan. Daarom
+// knippen we op komma's én op spaties en houden we alles over wat op een voornaam lijkt.
+export function zoekCrew(t: string) {
+  const m = /ZON\s*ONDER:?\s*\d{1,2}:\d{2}\s*(.{20,1200}?)(?=Kaap Holland:|Netflix:|Post:|Verhuur:|Crew:|Blue Circle|Kaap Holland Series Production|$)/i.exec(t);
+  if (!m) return [];
+  const namen: string[] = [];
+  m[1].split(/[,\n;]+/).forEach((stuk) => {
+    stuk.split(/\s+/).forEach((w) => {
+      const n = w.replace(/[.,;:()]+$/, "").trim();
+      if (/^[A-ZÀ-Ý][a-zà-ÿ'’\-]{1,}$/.test(n) && namen.indexOf(n) < 0) namen.push(n);
+    });
+  });
+  return namen;
+}
+
 export function leesCallsheet(tekst: string, bestandsnaam: string) {
   const t = String(tekst);
   const uit: any = { bron: bestandsnaam, meldingen: [] as string[] };
@@ -173,46 +281,35 @@ export function leesCallsheet(tekst: string, bestandsnaam: string) {
   if (!uit.wrap) uit.meldingen.push("wrap niet gevonden");
   if (!uit.lunch) uit.meldingen.push("lunchtijd niet gevonden");
 
-  const loc = /LOCATIE\s+([A-Z][A-Z0-9 &'\-]{3,40})\s*\n/.exec(t);
+  // De locatienaam staat tussen het woord LOCATIE en het eerste labelteken. In de platte
+  // tekst zit daar geen regeleinde tussen, dus zoeken we vooruit naar ★, ☉, ◉ of CREWCALL.
+  const loc = /LOCATIE\s+([A-Z][A-Z0-9 &'\-]{3,40}?)\s*(?=[★☉◉]|CREWCALL)/.exec(t);
   if (loc) uit.locatie = loc[1].trim();
+  if (!uit.locatie) uit.meldingen.push("locatienaam niet gevonden");
 
-  // Op sommige callsheets staat het setadres achter "SET", op andere staat daar niets
-  // en volgt alleen het volgende kopje. Een adres heeft een huisnummer en een komma;
-  // is dat er niet, dan hebben we het niet gevonden en zeggen we dat ook.
-  const adres = /★[ \t]*SET[ \t]+([^\n]{6,200})/.exec(t);
-  // In de ene PDF staat het adres op een eigen regel, in de andere loopt de tekst door
-  // met HOLDING en BASECAMP erachter. Knip daarom af bij het eerstvolgende bolletje.
-  const kandidaat = (adres ? adres[1] : "").split(/[☉◉★]/)[0].replace(/\s+/g, " ").trim();
-  if (/\d/.test(kandidaat) && kandidaat.indexOf(",") > -1) {
-    uit.setadres = kandidaat;
-  }
-  if (!uit.setadres) uit.meldingen.push("setadres niet gevonden, vul het handmatig aan voor de kilometerberekening");
+  // Het setadres. Dit is het lastigste stukje van het callsheet, want de labels en de
+  // adressen staan in twee losse kolommen. In de ene PDF komt de tekst eruit als
+  // "★ SET <adres>", in de andere staan eerst de labels SET, HOLDING en BASECAMP onder
+  // elkaar en pas verderop het rijtje adressen. Daarom drie manieren, in volgorde.
+  uit.setadres = zoekSetadres(t);
 
-  // De crewregel. Op het callsheet staat bovenin CREW (40) en verderop de rij namen,
-  // alleen voornamen, door komma's gescheiden. Die rij hebben we nodig om te weten wie
-  // er die dag op set was, zodat de weekmails niet naar de hele ploeg gaan.
+  // Wie er die dag op het callsheet stond. Nodig om de weekmails alleen naar die mensen
+  // te sturen en niet naar de hele ploeg.
   const aantal = /\bCREW\s*\((\d{1,3})\)/i.exec(t);
-  const alineas = t.split(/\n+/).map((r) => r.trim());
-  const rijen = alineas.filter((r) => (r.match(/,/g) || []).length >= 4 && /^[A-ZÀ-Ý]/.test(r) && !/[:@]/.test(r) && r.length < 900);
-  if (rijen.length) {
-    // De langste rij namen is de crewregel; de kortere zijn extra crew en cast.
-    const beste = rijen.slice().sort((a, b) => (b.match(/,/g) || []).length - (a.match(/,/g) || []).length)[0];
-    const namen = beste.split(",").map((n) => n.trim()).filter((n) => n.length > 1 && /^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ' -]*$/.test(n));
-    if (namen.length >= 5) {
-      uit.crew = namen;
-      if (aantal && Math.abs(namen.length - +aantal[1]) > 2) {
-        uit.meldingen.push("het callsheet noemt " + aantal[1] + " crew maar ik lees er " + namen.length + "; controleer de crewregel");
-      }
+  const namen = zoekCrew(t);
+  if (namen.length >= 5) {
+    uit.crew = namen;
+    if (aantal && namen.length + 2 < +aantal[1]) {
+      uit.meldingen.push("het callsheet noemt " + aantal[1] + " crew maar ik lees er " + namen.length + "; controleer de crewregel");
     }
   }
   if (!uit.crew) uit.meldingen.push("crewregel niet gevonden, de weekmails gaan voor deze dag naar iedereen");
 
-  // Het hotel, als er die dag overnacht wordt. Staat er meestal als "Hotel: naam, adres"
-  // in de legenda onder het transportschema.
-  const hotelRegel = /Hotel:\s*([^\n]{8,160})/i.exec(t);
-  const hotelZin = /overnacht(?:en)?\s+in\s+hotel\s+([^\n.]{8,160})/i.exec(t);
-  const hotelRuw = (hotelRegel ? hotelRegel[1] : hotelZin ? hotelZin[1] : "").split(/[☉◉★|]/)[0].replace(/\s+/g, " ").trim();
-  if (/\d/.test(hotelRuw) && hotelRuw.indexOf(",") > -1) uit.hotel = hotelRuw.replace(/^\(|\)$/g, "");
+  // Het hotel, als er die dag overnacht wordt. Het portaal biedt dat adres dan aan als
+  // vertrekpunt, zodat iemand die in het hotel sliep geen kilometers vanaf huis claimt.
+  const h = zoekHotel(t);
+  uit.hotelnaam = h.naam;
+  uit.hotel = h.naam && h.adres ? h.naam + ", " + h.adres : "";
 
   // Nachtdraaidag: de dag loopt door tot na middernacht en er wordt daarna ook echt
   // nog gedraaid. Een wrap om precies 00:00 levert nul nachturen op en telt dus niet.
@@ -253,14 +350,36 @@ function velden(p: any, rev: string, vandaag: string) {
 export async function verwerk() {
   const vandaag = new Date().toISOString().slice(0, 10);
   const token = await dropboxToken();
-  const bestanden = (await dropboxLijst(token)).filter(
-    (e) => /callsheet/i.test(e.name) && /\.pdf$/i.test(e.name)
-  );
+  // Op naam sorteren, zodat DD#01 vóór DD#02 wordt gelezen. Dat maakt het vangnet
+  // hieronder voorspelbaar: een adres dat op een latere dag wél staat, staat dan al in
+  // Airtable bij de volgende run.
+  const bestanden = (await dropboxLijst(token))
+    .filter((e) => /callsheet/i.test(e.name) && /\.pdf$/i.test(e.name))
+    .sort((a, b) => a.name.localeCompare(b.name, "nl"));
   const bestaand = await alleDraaidagen();
 
   const gedaan: string[] = [];
   const gemeld: string[] = [];
   const overgeslagen: string[] = [];
+
+  // Vangnet, zodat een locatie nooit leeg blijft. Sommige callsheets zetten het adres
+  // van de set of van het hotel er niet bij (bij DD#01 en DD#03 staat het hotel er als
+  // "SS Roterdam ( )", met een leeg haakje). We onthouden per locatienaam en per
+  // hotelnaam het adres dat we elders wél gelezen hebben, uit deze run en uit de dagen
+  // die al in Airtable staan, en vullen dat dan in. Dat wordt altijd gemeld, zodat het
+  // te zien is dat het adres niet van dat callsheet zelf komt.
+  const bekendSet: Record<string, string> = {};
+  const bekendHotel: Record<string, string> = {};
+  bestaand.forEach((r: any) => {
+    const l = String(r.fields[F.locatie] || "").trim().toUpperCase();
+    const a = String(r.fields[F.setadres] || "").trim();
+    if (l && a && !bekendSet[l]) bekendSet[l] = a;
+    const h = String(r.fields[F.hotel] || "").trim();
+    if (h && h.indexOf(",") > -1) {
+      const naam = h.split(",")[0].trim().toLowerCase();
+      if (naam && !bekendHotel[naam]) bekendHotel[naam] = h;
+    }
+  });
 
   for (const b of bestanden) {
     const alGelezen = bestaand.filter((r: any) => r.fields[F.bron] === b.name && r.fields[F.rev] === b.rev)[0];
@@ -281,6 +400,23 @@ export async function verwerk() {
       overgeslagen.push(b.name + " (geen datum in het callsheet gevonden)");
       continue;
     }
+
+    // Vangnet: adres van set of hotel aanvullen als het callsheet het niet noemt.
+    const locSleutel = String(p.locatie || "").trim().toUpperCase();
+    if (p.setadres && locSleutel) bekendSet[locSleutel] = p.setadres;
+    if (!p.setadres && locSleutel && bekendSet[locSleutel]) {
+      p.setadres = bekendSet[locSleutel];
+      p.meldingen.push("setadres staat niet op dit callsheet; overgenomen van een eerdere draaidag op " + p.locatie + " (" + p.setadres + ")");
+    }
+    const hotelSleutel = String(p.hotelnaam || "").trim().toLowerCase();
+    if (p.hotel && hotelSleutel) bekendHotel[hotelSleutel] = p.hotel;
+    if (!p.hotel && hotelSleutel && bekendHotel[hotelSleutel]) {
+      p.hotel = bekendHotel[hotelSleutel];
+      p.meldingen.push("hoteladres staat niet op dit callsheet; overgenomen van een andere draaidag (" + p.hotel + ")");
+    } else if (!p.hotel && hotelSleutel) {
+      p.meldingen.push("hotel " + p.hotelnaam + " genoemd zonder adres; vul het adres eenmalig aan bij een draaidag");
+    }
+    if (!p.setadres) p.meldingen.push("setadres niet gevonden, vul het handmatig aan voor de kilometerberekening");
 
     // Het setadres omzetten in coördinaten, zodat het portaal later de kilometers kan
     // uitrekenen zonder dat elk crewlid opnieuw hetzelfde adres laat opzoeken.
