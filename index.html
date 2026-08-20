@@ -561,6 +561,8 @@ function dagKaart(d){
 
   var bedrag=0, st='nog invullen', leeg=' leeg';
   if(inv){ bedrag=rekenVoor(d,inv).totaal; st='ingevuld'; leeg=''; }
+  // Niet gewerkt is een antwoord, dus die dag is af en hoort niet als leeg te ogen.
+  if(inv&&inv.nietGewerkt){ st='niet gewerkt'; }
 
   return '<div class="dag'+(open?' open':'')+'" id="dag_'+d.datum+'">'+
     '<div class="rij" onclick="klapOpen(\''+d.datum+'\')">'+
@@ -651,7 +653,7 @@ function formHtml(d){
 
   '<div class="acties">'+
     '<button class="knop prim" id="opsl_'+id+'" onclick="bewaar(\''+id+'\')">Dag opslaan</button>'+
-    '<button class="knop sec" onclick="wisDag(\''+id+'\')">Wissen</button>'+
+    '<button class="knop sec" onclick="wisDag(\''+id+'\')">Leegmaken</button>'+
   '</div>';
 }
 
@@ -811,11 +813,12 @@ async function bewaar(datum){
 
 async function wisDag(datum){
   try{
-    await post({actie:'dag', datum:datum, nietGewerkt:true});
+    var r=await post({actie:'wis', datum:datum});
+    if(!r.ok){ melding(r.reden||'Leegmaken lukte niet.', true); return; }
     delete INVOER[datum];
     OPEN=null;
     bouwWeken();
-    melding('Dag gewist.');
+    melding('Dag leeggemaakt. Hij staat weer op nog invullen.');
   }catch(e){ melding('Wissen lukte niet: '+e.message, true); }
 }
 
