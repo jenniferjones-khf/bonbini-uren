@@ -434,8 +434,13 @@ export async function verwerk() {
     const opDatum = bestaand.filter((r: any) => r.fields[F.datum] === p.datum)[0];
     if (opDatum) {
       await at("/" + T_DAG + "/" + opDatum.id, { method: "PATCH", body: JSON.stringify({ fields: f, typecast: true }) });
+      opDatum.fields = { ...opDatum.fields, ...f };
     } else {
-      await at("/" + T_DAG, { method: "POST", body: JSON.stringify({ fields: f, typecast: true }) });
+      // De nieuwe dag meteen aan de lijst toevoegen. Voor sommige draaidagen staat er
+      // meer dan een callsheet in de map (bijvoorbeeld een aparte versie voor een
+      // kindacteur). Zonder deze regel maakt de tweede daar een tweede draaidag van.
+      const nieuwRec: any = await at("/" + T_DAG, { method: "POST", body: JSON.stringify({ fields: f, typecast: true }) });
+      bestaand.push({ id: nieuwRec.id, fields: f });
     }
     gedaan.push(b.name + " -> " + p.datum);
     if (p.meldingen.length) gemeld.push(b.name + ": " + p.meldingen.join("; "));
