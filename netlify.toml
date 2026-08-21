@@ -1,5 +1,6 @@
 # Netlify-instellingen voor het urenportaal van Bon Bini.
-# De site is een enkele HTML-pagina plus een serverfunctie die met Airtable praat.
+# Twee pagina's, index.html voor de uren en gegevens.html voor de persoonsgegevens,
+# plus een serverfunctie die met Airtable praat.
 
 [build]
   publish = "."
@@ -22,7 +23,17 @@
     Referrer-Policy = "same-origin"
 
 # De pagina bevat persoonlijke gegevens; niet laten cachen door tussenliggende servers.
+[[redirects]]
+  from = "/gegevens"
+  to = "/gegevens.html"
+  status = 200
+
 [[headers]]
   for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-store"
+
+[[headers]]
+  for = "/gegevens.html"
   [headers.values]
     Cache-Control = "no-store"
