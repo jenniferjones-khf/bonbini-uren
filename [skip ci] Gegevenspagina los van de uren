@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mijn gegevens — Bon Bini</title>
+<style>
+  :root{
+    --inkt:#12141a; --inkt2:#1c1f28; --lijn:#2b303c; --lijn2:#e3e6ec;
+    --papier:#f6f7f9; --wit:#ffffff; --grijs:#6b7280; --grijs2:#9aa1ad;
+    --groen:#0f7b52; --groen-l:#e6f4ee; --oranje:#a2600d; --oranje-l:#fdf3e3;
+    --rood:#a4262c;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{background:var(--papier);color:var(--inkt);
+    font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+    padding-bottom:40px}
+  .wrap{max-width:760px;margin:0 auto;padding:0 14px}
+
+  header{background:var(--inkt);color:#fff;padding:18px 0 16px}
+  .prod{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#8c93a3;margin:0 0 6px}
+  h1{font-size:21px;margin:0;font-weight:650;letter-spacing:-.01em}
+  .functie{color:#aeb5c2;font-size:13px;margin-top:2px}
+
+  .banner{display:flex;gap:10px;align-items:flex-start;background:#eef4fb;border:1px solid #c9dcf0;
+    border-radius:11px;padding:11px 13px;margin:14px 0 0;font-size:13px;line-height:1.45;color:#274566}
+  .banner.klaar{background:var(--groen-l);border-color:#bfe0d1;color:#0b5c3e}
+
+  .uitleg{color:var(--grijs);font-size:13px;margin:16px 0 14px;max-width:60ch}
+  .blok{background:var(--wit);border:1px solid var(--lijn2);border-radius:11px;padding:14px 13px;margin-bottom:10px}
+  .blok>.kop{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--grijs2);
+    font-weight:700;margin-bottom:10px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:12px 14px;align-items:end}
+  label.v{display:flex;flex-direction:column;justify-content:flex-end}
+  label.v .n{font-size:11.5px;color:var(--grijs);margin-bottom:3px;line-height:1.25;
+    min-height:2.3em;display:flex;align-items:flex-end}
+  label.v .n b{color:var(--rood);font-weight:600;margin-left:2px}
+  input,select{width:100%;font:inherit;font-size:15px;padding:9px 10px;border:1px solid #cfd4dd;
+    border-radius:9px;background:#fff;color:var(--inkt)}
+  input::placeholder{color:#b3b9c4}
+  input:focus,select:focus{outline:2px solid #b9c6da;outline-offset:1px}
+
+  .acties{display:flex;gap:10px;align-items:center;margin:16px 0 8px;flex-wrap:wrap}
+  .knop{border:0;border-radius:10px;padding:13px 18px;font:inherit;font-weight:600;cursor:pointer;
+    background:var(--inkt);color:#fff}
+  .knop.sec{background:transparent;color:var(--inkt);border:1px solid #cfd4dd}
+  .knop[disabled]{opacity:.5;cursor:default}
+
+  .melding{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;background:var(--inkt);
+    color:#fff;padding:11px 16px;border-radius:10px;font-size:14px;max-width:90vw;z-index:9}
+  .melding.fout{background:var(--rood)}
+  .laad{position:fixed;inset:0;background:var(--inkt);color:#fff;display:flex;align-items:center;
+    justify-content:center;text-align:center;padding:24px;z-index:20}
+  .laad h3{margin:0 0 6px;font-size:18px}
+  .laad p{margin:0;color:#aeb5c2;font-size:14px;max-width:44ch}
+</style>
+</head>
+<body>
+
+<div class="laad" id="laad">
+  <div><h3 id="laadTitel">Even je gegevens ophalen</h3><p id="laadTekst">Een momentje.</p></div>
+</div>
+
+<header>
+  <div class="wrap">
+    <p class="prod" id="prodnaam"></p>
+    <h1>Mijn gegevens</h1>
+    <div class="functie" id="hNaam"></div>
+  </div>
+</header>
+
+<div class="wrap" id="banners"></div>
+
+<div class="wrap">
+  <p class="uitleg">Deze gegevens hebben we nodig voor je contract, je declaraties en je kilometervergoeding.
+    Alleen de productie ziet ze. Je vult ze een keer in en kunt ze altijd bijwerken; er ontstaat geen tweede regel.</p>
+  <div id="velden"></div>
+  <div class="acties">
+    <button class="knop" id="opsl" onclick="bewaar()">Gegevens opslaan</button>
+    <a class="knop sec" id="naarUren" href="#" style="text-decoration:none">Naar mijn uren</a>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   Gegevenspagina Bon Bini, Jetzt Geht's Los
+
+   Bewust een eigen pagina en niet een tabblad naast de uren. In de eerste testronde
+   bleek niemand te vinden waar hij zijn gegevens moest invullen toen het een tab was.
+   De welkomstmail linkt hierheen; als je klaar bent ga je door naar je urenpagina.
+
+   Alles landt in dezelfde crewregel als waar de uren aan hangen, dus er kan nooit een
+   tweede regel voor dezelfde persoon ontstaan.
+   ============================================================ */
+
+var TOKEN = new URLSearchParams(location.search).get('t') || '';
+var IK = null, DATA = null;
+
+// veld, label, soort, ongebruikt, voorbeeldtekst in het veld
+var GEG = [
+  ['straat','Straat en huisnummer','text','',''],
+  ['postcode','Postcode','text','','1017 CZ'],
+  ['woonplaats','Woonplaats','text','',''],
+  ['vastVertrekpunt','Vast vertrekpunt','text','','alleen als je altijd elders vertrekt, bv. de loods'],
+  ['telefoon','Telefoonnummer','text','',''],
+  ['geboortedatum','Geboortedatum','text','','1985-03-24'],
+  ['iban','IBAN','text','',''],
+  ['noodcontact','Noodcontact (naam en nummer)','text','',''],
+  ['kenteken','Kenteken en auto','text','',''],
+  ['allergieen','Allergieën of dieet','text','',''],
+  ['bhv','BHV-diploma','select:Ja,Nee','',''],
+  ['contractvorm','Freelance of payroll','select:Freelance,Payroll','',''],
+  ['bedrijfsnaam','Bedrijfsnaam','text','',''],
+  ['btw','BTW-nummer','text','',''],
+  ['kvk','KVK-nummer','text','',''],
+  ['payrollsysteem','Payrollsysteem','text','','']
+];
+
+// Zonder deze drie kunnen we je kilometers niet uitrekenen en je factuur niet betalen.
+var NODIG = [['straat','je adres'],['postcode','je postcode'],['iban','je IBAN']];
+
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function melding(tekst, fout){
+  var el=document.createElement('div');
+  el.className='melding'+(fout?' fout':'');
+  el.textContent=tekst;
+  document.body.appendChild(el);
+  setTimeout(function(){ el.remove(); }, fout?7000:3200);
+}
+
+function toonLaadfout(titel, tekst){
+  document.getElementById('laad').style.display='flex';
+  document.getElementById('laadTitel').textContent=titel;
+  document.getElementById('laadTekst').textContent=tekst;
+}
+
+async function laden(){
+  if(!/^rec[A-Za-z0-9]{14}$/.test(TOKEN)){
+    toonLaadfout('Open deze pagina via je eigen link',
+      'Je hebt van de productie een persoonlijke link gekregen. Gebruik die link; hij hoort te eindigen op ?t= en dan je eigen code.');
+    return;
+  }
+  try{
+    var r=await fetch('/api/portaal?t='+encodeURIComponent(TOKEN));
+    var d=await r.json();
+    if(!r.ok||d.fout) throw new Error(d.fout||('serverfout '+r.status));
+    DATA=d; IK=d.ik;
+    document.getElementById('laad').style.display='none';
+    document.getElementById('prodnaam').textContent=d.productie;
+    document.getElementById('hNaam').textContent=IK.naam+(IK.functie?' · '+IK.functie:'');
+    document.getElementById('naarUren').href='/?t='+encodeURIComponent(TOKEN);
+    bouw();
+    bouwBanners();
+  }catch(e){
+    toonLaadfout('Het lukt even niet', 'We krijgen je gegevens nu niet te pakken. Probeer het zo nog eens, of meld het bij de productie. ('+e.message+')');
+  }
+}
+
+function veldHtml(f){
+  var g=IK.gegevens||{};
+  var sleutel=f[0], label=f[1], type=f[2], waarde=g[sleutel]||'';
+  var verplicht = NODIG.some(function(n){ return n[0]===sleutel; }) ? '<b>*</b>' : '';
+  if(type.indexOf('select:')===0){
+    var opties=type.slice(7).split(',');
+    return '<label class="v"><span class="n">'+label+verplicht+'</span><select id="g_'+sleutel+'">'+
+      '<option value="">Kies</option>'+
+      opties.map(function(o){return '<option value="'+o+'"'+(waarde===o?' selected':'')+'>'+o+'</option>';}).join('')+
+      '</select></label>';
+  }
+  var ph = f[4] ? ' placeholder="'+esc(f[4])+'"' : '';
+  return '<label class="v"><span class="n">'+label+verplicht+'</span>'+
+    '<input type="text" id="g_'+sleutel+'" value="'+esc(waarde)+'"'+ph+'></label>';
+}
+
+function bouw(){
+  var h='<div class="blok"><div class="kop">Jij</div><div class="grid">';
+  GEG.slice(0,10).forEach(function(f){ h+=veldHtml(f); });
+  h+='</div></div><div class="blok"><div class="kop">Zakelijk</div><div class="grid">';
+  GEG.slice(10).forEach(function(f){ h+=veldHtml(f); });
+  h+='</div></div>';
+  document.getElementById('velden').innerHTML=h;
+}
+
+function bouwBanners(){
+  var g=IK.gegevens||{};
+  var mist=NODIG.filter(function(f){ return !String(g[f[0]]||'').trim(); }).map(function(f){ return f[1]; });
+  var h='';
+  if(mist.length){
+    var lijst = mist.length===1 ? mist[0] : mist.slice(0,-1).join(', ')+' en '+mist[mist.length-1];
+    h='<div class="banner">We missen nog '+lijst+'. De velden met een sterretje hebben we echt nodig.</div>';
+  }else{
+    h='<div class="banner klaar">Je gegevens zijn compleet. Je kunt ze hier altijd bijwerken.</div>';
+  }
+  document.getElementById('banners').innerHTML=h;
+}
+
+async function bewaar(){
+  var knop=document.getElementById('opsl');
+  var uit={};
+  GEG.forEach(function(f){
+    var el=document.getElementById('g_'+f[0]);
+    if(el) uit[f[0]]=el.value.trim();
+  });
+  knop.disabled=true; knop.textContent='Opslaan…';
+  try{
+    var r=await fetch('/api/portaal?t='+encodeURIComponent(TOKEN), {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({actie:'gegevens', gegevens:uit})
+    });
+    var d=await r.json();
+    if(!r.ok||d.fout) throw new Error(d.fout||('serverfout '+r.status));
+    IK.gegevens=uit;
+    bouwBanners();
+    var mist=NODIG.filter(function(f){ return !String(uit[f[0]]||'').trim(); });
+    melding(mist.length ? 'Opgeslagen. Er ontbreekt nog wat.' : 'Opgeslagen, je gegevens zijn compleet.');
+  }catch(e){
+    melding('Opslaan lukte niet: '+e.message, true);
+  }finally{
+    knop.disabled=false; knop.textContent='Gegevens opslaan';
+  }
+}
+
+laden();
+</script>
+</body>
+</html>
