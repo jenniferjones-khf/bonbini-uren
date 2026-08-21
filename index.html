@@ -83,9 +83,9 @@
   .veldgroep{margin-bottom:15px}
   .veldgroep>.kop{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--grijs2);
     font-weight:700;margin-bottom:7px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:9px}
-  label.v{display:block}
-  label.v .n{display:block;font-size:11.5px;color:var(--grijs);margin-bottom:3px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:9px;align-items:end}
+  label.v{display:flex;flex-direction:column;justify-content:flex-end}
+  label.v .n{display:block;font-size:11.5px;color:var(--grijs);margin-bottom:3px;line-height:1.25}
   input[type=text],input[type=number],textarea,select{
     width:100%;border:1px solid #d5d9e0;border-radius:8px;padding:9px 10px;font:inherit;font-size:15px;
     background:var(--wit);color:var(--inkt);font-variant-numeric:tabular-nums}
@@ -123,6 +123,8 @@
   .voet button{margin-left:auto;border:0;background:var(--inkt);color:#fff;border-radius:9px;
     padding:11px 17px;font:inherit;font-weight:650;font-size:14px;cursor:pointer}
   .voet button:disabled{background:#c8ccd4;cursor:default}
+  .voet .voetlink{margin-left:10px;border:1px solid #cfd4dd;background:#fff;color:var(--inkt);
+    border-radius:9px;padding:11px 14px;font-size:14px;font-weight:600;text-decoration:none;white-space:nowrap}
 
   /* naamkiezer */
   .kies{position:fixed;inset:0;background:var(--inkt);z-index:60;display:flex;align-items:center;justify-content:center;padding:20px}
@@ -174,15 +176,9 @@
     border-radius:11px;padding:11px 13px;margin:14px 0 0;font-size:13px;line-height:1.45;color:#5c4a15}
   .banner.info{background:#eef4fb;border-color:#c9dcf0;color:#274566}
   .banner b{font-weight:600}
-  .banner button{margin-left:auto;flex:none;border:1px solid currentColor;background:transparent;
-    color:inherit;border-radius:8px;padding:5px 10px;font-size:12.5px;cursor:pointer}
+  .banner .knopje{margin-left:auto;flex:none;border:1px solid currentColor;background:transparent;
+    color:inherit;border-radius:8px;padding:5px 10px;font-size:12.5px;cursor:pointer;text-decoration:none;white-space:nowrap}
 
-  /* mijn gegevens */
-  .gegevens{padding:16px 0 8px}
-  .gegevens .blok{background:var(--wit);border:1px solid var(--lijn2);border-radius:11px;padding:14px 13px;margin-bottom:10px}
-  .gegevens .blok>.kop{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--grijs2);
-    font-weight:700;margin-bottom:10px}
-  .gegevens .uitleg{color:var(--grijs);font-size:12.5px;margin:0 0 14px}
 </style>
 </head>
 <body>
@@ -210,18 +206,12 @@
   </div>
 </header>
 
-<nav class="tabs">
-  <div class="wrap">
-    <button id="tabUren" class="aan" onclick="kiesTab('uren')">Mijn uren</button>
-    <button id="tabGegevens" onclick="kiesTab('gegevens')">Mijn gegevens</button>
-  </div>
-</nav>
+
 
 <div class="wrap" id="banners"></div>
 <nav class="weken" id="weeknav"><div class="wrap" id="weekbalk"></div></nav>
 
 <div class="wrap" id="inhoud"></div>
-<div class="wrap gegevens verborgen" id="gegevensblok"></div>
 
 <div class="voet" id="voet">
   <div class="wrap">
@@ -232,6 +222,7 @@
     </div>
     <button id="vKnop" onclick="dienIn()">Week indienen</button>
       <button id="vMail" class="knop sec" style="margin-left:8px" onclick="stuurWeekoverzicht()">Mail mij dit overzicht</button>
+      <a id="vGeg" class="voetlink" href="#">Mijn gegevens</a>
   </div>
 </div>
 
@@ -254,6 +245,8 @@ function nogNietGeweest(datum){ return datum > vandaagNu(); }
 // Zonder dagprijs valt er niets te rekenen. Dan tonen we geen bedragen van nul, want
 // dat leest als "je krijgt niets" terwijl het betekent "we weten het nog niet".
 function dagprijsBekend(){ return !!(IK && IK.dagprijs); }
+// Geldt de overurenregeling voor mij? Komt uit het contract, staat op mijn crewregel.
+function otVoorMij(){ return !!(IK && IK.otRegelset); }
 function bedragOfStreep(n){ return dagprijsBekend() ? eur(n) : '—'; }
 
 function kmTariefIk(){ return (IK && IK.kmTarief) ? IK.kmTarief : RS.kmPersonen; }
@@ -454,9 +447,9 @@ function start(){
   document.getElementById('hFunctie').textContent=IK.functie||'';
   document.getElementById('hDag').textContent=IK.dagprijs?eur(IK.dagprijs):'nog niet ingevuld';
   document.getElementById('hUur').textContent=IK.dagprijs?eur(IK.dagprijs/10):'—';
+  document.getElementById('vGeg').href='/gegevens?t='+encodeURIComponent(TOKEN);
   bouwBanners();
   bouwWeken();
-  bouwGegevens();
 }
 
 /* ---------------------------------------------------------- weken */
@@ -502,15 +495,6 @@ function bouwWeken(){
 
 function kiesWeek(w){ ACTIEVEWEEK=w; OPEN=null; bouwWeken(); }
 
-function kiesTab(t){
-  TAB=t;
-  document.getElementById('tabUren').className = t==='uren'?'aan':'';
-  document.getElementById('tabGegevens').className = t==='gegevens'?'aan':'';
-  document.getElementById('inhoud').className = 'wrap'+(t==='uren'?'':' verborgen');
-  document.getElementById('gegevensblok').className = 'wrap gegevens'+(t==='gegevens'?'':' verborgen');
-  document.getElementById('weeknav').style.display = t==='uren'?'':'none';
-  document.getElementById('voet').style.display = t==='uren'?'':'none';
-}
 
 /* Teller: hoeveel nacht- en zondagdagen zitten al in de dagprijs, en de hoeveelste
    is de dag die je nu open hebt. Zo zie je waar je staat zonder zelf te tellen. */
@@ -809,16 +793,20 @@ function rekenVoor(d, inv){
   if(inv.nietGewerkt) return {leeg:true, totaal:0, meldingen:[]};
   var materiaal = inv.vervoer==='Eigen auto met materiaal';
   var kmTelt = inv.vervoer && !geenKm(inv.vervoer);
+  // Wie op maandfee zit valt buiten de overurenregeling. Geen toeslagen dus, maar
+  // kilometers en parkeren zijn onkosten en die krijgt iedereen.
+  var toeslagen = otVoorMij();
   var c=berekenDag({
     dagprijs:IK.dagprijs, groot:IK.groot, start:inv.start, eind:inv.eind,
     reisuren:reisurenUit(inv), km:kmTelt?getal(inv.km):0,
     kmTarief: materiaal?RS.kmMateriaal:kmTariefIk(), zondag:d.zondag
   });
-  var ta=berekenTurnaround(vorigeDag(d.datum), Object.assign({datum:d.datum},inv), IK.dagprijs);
+  if(!toeslagen){ c.otUren=0; c.otE=0; c.nachtUren=0; c.naE=0; c.reE=0; c.zoE=0; }
+  var ta = toeslagen ? berekenTurnaround(vorigeDag(d.datum), Object.assign({datum:d.datum},inv), IK.dagprijs) : {uren:0,bedrag:0};
   var nachtVrij = d.nacht && DATA.inbegrepen.nachten[d.datum];
   var zonVrij   = d.zondag && DATA.inbegrepen.zondagen[d.datum];
-  var naE = (d.nacht && !nachtVrij) ? c.naE : 0;
-  var zoE = zonVrij ? 0 : c.zoE;
+  var naE = (toeslagen && d.nacht && !nachtVrij) ? c.naE : 0;
+  var zoE = (!toeslagen || zonVrij) ? 0 : c.zoE;
   var park = Math.max(0,getal(inv.parkeer));
 
   var meldingen=[];
@@ -1044,24 +1032,6 @@ async function dienIn(){
 
 /* ---------------------------------------------------------- mijn gegevens */
 
-var GEG = [
-  ['straat','Straat en huisnummer','text'],
-  ['postcode','Postcode','text'],
-  ['woonplaats','Woonplaats','text'],
-  ['vastVertrekpunt','Vertrek je vast vanaf een andere plek dan huis? (bv. de loods)','text'],
-  ['telefoon','Telefoonnummer','text'],
-  ['geboortedatum','Geboortedatum (jjjj-mm-dd)','text'],
-  ['iban','IBAN','text'],
-  ['noodcontact','Noodcontact (naam en nummer)','text'],
-  ['kenteken','Kenteken en auto','text'],
-  ['allergieen','Allergieën of dieet','text'],
-  ['bhv','BHV-diploma','select:Ja,Nee'],
-  ['contractvorm','Freelance of payroll','select:Freelance,Payroll'],
-  ['bedrijfsnaam','Bedrijfsnaam','text'],
-  ['btw','BTW-nummer','text'],
-  ['kvk','KVK-nummer','text'],
-  ['payrollsysteem','Payrollsysteem','text']
-];
 
 // Meldingen bovenaan. Alleen tonen wat nu echt speelt; een balk die er altijd staat
 // leest niemand meer.
@@ -1082,7 +1052,7 @@ function bouwBanners(){
     var lijst = mist.length===1 ? mist[0] : mist.slice(0,-1).join(', ')+' en '+mist[mist.length-1];
     h+='<div class="banner info"><div>We missen nog '+lijst+'. Zonder adres en postcode kunnen we '+
        'je kilometers niet vooraf uitrekenen.</div>'+
-       '<button onclick="kiesTab(&quot;gegevens&quot;)">Invullen</button></div>';
+       '<a class="knopje" href="/gegevens?t='+encodeURIComponent(TOKEN)+'">Invullen</a></div>';
   }
 
   if(!dagprijsBekend()){
@@ -1093,53 +1063,8 @@ function bouwBanners(){
   document.getElementById('banners').innerHTML=h;
 }
 
-function bouwGegevens(){
-  var g=IK.gegevens||{};
-  var h='<p class="uitleg">Deze gegevens hebben we nodig voor je contract, je declaraties en je kilometervergoeding. '+
-        'Alleen de productie ziet ze. Je kunt ze altijd bijwerken; er ontstaat geen tweede regel.</p>';
-  h+='<div class="blok"><div class="kop">Jij</div><div class="grid">';
-  GEG.slice(0,10).forEach(function(f){ h+=gegVeld(f,g); });
-  h+='</div></div>';
-  h+='<div class="blok"><div class="kop">Zakelijk</div><div class="grid">';
-  GEG.slice(10).forEach(function(f){ h+=gegVeld(f,g); });
-  h+='</div></div>';
-  h+='<div class="acties" style="margin-bottom:26px"><button class="knop prim" id="gegKnop" onclick="bewaarGegevens()">Gegevens opslaan</button></div>';
-  document.getElementById('gegevensblok').innerHTML=h;
-}
 
-function gegVeld(f,g){
-  var sleutel=f[0], label=f[1], type=f[2];
-  var waarde=g[sleutel]||'';
-  if(type.indexOf('select:')===0){
-    var opties=type.slice(7).split(',');
-    return '<label class="v"><span class="n">'+label+'</span><select id="g_'+sleutel+'">'+
-      '<option value="">Kies</option>'+
-      opties.map(function(o){return '<option value="'+o+'"'+(waarde===o?' selected':'')+'>'+o+'</option>';}).join('')+
-      '</select></label>';
-  }
-  return '<label class="v"><span class="n">'+label+'</span>'+
-    '<input type="text" id="g_'+sleutel+'" value="'+esc(waarde)+'"></label>';
-}
 
-async function bewaarGegevens(){
-  var knop=document.getElementById('gegKnop');
-  var uit={};
-  GEG.forEach(function(f){
-    var el=document.getElementById('g_'+f[0]);
-    if(el) uit[f[0]]=el.value;
-  });
-  knop.disabled=true; knop.textContent='Opslaan…';
-  try{
-    await post({actie:'gegevens', gegevens:uit});
-    IK.gegevens=uit;
-    bouwBanners();
-    melding('Je gegevens zijn bijgewerkt.');
-  }catch(e){
-    melding('Opslaan lukte niet: '+e.message, true);
-  }finally{
-    knop.disabled=false; knop.textContent='Gegevens opslaan';
-  }
-}
 
 laden();
 </script>
