@@ -72,6 +72,7 @@ const F = {
   },
   uur: {
     nietGewerkt: "fldZZUJl3ypFGL4Zz",
+    status: "fldmbytC1V67nTCRP",
     registratie: "fldMeqRcR0Skjde27",
     crew: "fldfvmiXAJs7zwkR5",
     datum: "fldUJUogwUXJcHjUY",
@@ -228,6 +229,10 @@ function reisurenUit(r: any) {
 
 function berekenDag(inp: any) {
   const D = getal(inp.dagprijs), uur = D / 10;
+  // Wie op maandfee zit valt buiten de overurenregeling. Voor die mensen rekenen we
+  // geen toeslagen: geen overuren, geen nacht, geen reistijd, geen zondag, geen
+  // turnaround. Kilometers en parkeren zijn geen toeslag maar onkosten, die blijven.
+  const toeslagen = inp.otRegelset !== false;
   const start = pt(inp.start);
   let eind = pt(inp.eind);
   let onset = 0, nO = 0;
@@ -269,15 +274,16 @@ function berekenDag(inp: any) {
   const kmB = Math.max(0, getal(inp.km)) * (getal(inp.kmTarief) || RS.kmPersonen);
   return {
     uur,
+    toeslagen,
     gewerkteUren: r2(w.length / 60),
-    otUren: r2(otMin / 60),
-    otE: r2(otE),
-    nachtUren: r2(nachtW / 60),
-    naE: r2(naE),
+    otUren: toeslagen ? r2(otMin / 60) : 0,
+    otE: toeslagen ? r2(otE) : 0,
+    nachtUren: toeslagen ? r2(nachtW / 60) : 0,
+    naE: toeslagen ? r2(naE) : 0,
     reisuren: r2(R),
-    reE: r2(reE),
+    reE: toeslagen ? r2(reE) : 0,
     kmB: r2(kmB),
-    zoE: r2(zoE),
+    zoE: toeslagen ? r2(zoE) : 0,
   };
 }
 
@@ -401,7 +407,7 @@ async function haalAlles(crewId: string) {
       dagprijs: crewRec.fields[F.crew.dagprijs] || 0,
       kmTarief: getal(crewRec.fields[F.crew.kmTarief]) || RS.kmPersonen,
       groot: !!crewRec.fields[F.crew.groot],
-      otRegelset: crewRec.fields[F.crew.otRegelset] !== false,
+      otRegelset: crewRec.fields[F.crew.otRegelset] === true,
       gegevens: {
         straat: crewRec.fields[F.crew.straat] || "",
         postcode: crewRec.fields[F.crew.postcode] || "",
@@ -470,7 +476,7 @@ function kmLabel(tarief: number, materiaal: boolean) {
 }
 
 async function bewaarDag(crewId: string, body: any) {
-  const alles = await haalAlles(crewId + "?returnFieldsByFieldId=true");
+  const alles = await haalAlles(crewId);
   const datum = String(body.datum || "");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(datum)) throw new Error("Ongeldige datum");
   if (weekOpSlot(alles.weken, datum)) {
@@ -562,7 +568,7 @@ async function bewaarDag(crewId: string, body: any) {
   // productie er bij het aftikken naar. Minder invullen geeft nooit een melding.
   const berekend = getal(body.kmBerekend);
   const kmVeelHoger = berekend > 0 && km > berekend * 1.25 && km - berekend > 20;
-  velden["fldmbytC1V67nTCRP"] = materiaal || kmVeelHoger ? "Afwijking" : "Open";
+  velden[F.uur.status] = materiaal || kmVeelHoger ? "Afwijking" : "Open";
 
   if (bestaand) {
     await at("/" + T.uren + "/" + bestaand.id, { method: "PATCH", body: JSON.stringify({ fields: velden, typecast: true }) });
@@ -590,7 +596,7 @@ async function wisDagRecord(crewId: string, body: any) {
 // De week doorrekenen en indienen. De motor draait hier, niet in het scherm, zodat
 // wat er in de weekstaat komt te staan altijd van de server komt.
 async function dienWeekIn(crewId: string, weeknummer: number) {
-  const alles = await haalAlles(crewId + "?returnFieldsByFieldId=true");
+  const alles = await haalAlles(crewId);
   const bestaandeWeek = alles.weken.filter((w: any) => w.week === weeknummer)[0];
   if (bestaandeWeek && (bestaandeWeek.status === "Akkoord" || bestaandeWeek.status === "Verwerkt")) {
     return { ok: false, reden: "Deze week is al afgetikt." };
@@ -627,12 +633,13 @@ async function dienWeekIn(crewId: string, weeknummer: number) {
       km: u.km,
       kmTarief: materiaal ? RS.kmMateriaal : alles.ik.kmTarief,
       zondag: dag.zondag,
+      otRegelset: alles.ik.otRegelset,
     });
     const nachtVrij = dag.nacht && alles.inbegrepen.nachten[u.datum];
     const zonVrij = dag.zondag && alles.inbegrepen.zondagen[u.datum];
     const idx = alleIngevuld.findIndex((x: any) => x.datum === u.datum);
     vorige = idx > 0 ? alleIngevuld[idx - 1] : null;
-    const ta = berekenTurnaround(vorige, u, dagprijs);
+    const ta = alles.ik.otRegelset ? berekenTurnaround(vorige, u, dagprijs) : { uren: 0, bedrag: 0 };
 
     tot.uren += c.gewerkteUren;
     tot.ot += c.otE;
