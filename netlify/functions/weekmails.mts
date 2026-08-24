@@ -24,7 +24,8 @@ const T_REGELSET = "tbljCvRiFsZav6XbL";
 const F = {
   datum: "fldc7rNjjJ2tWf6HH",
   crewOpCallsheet: "fldB2LljUvMl7OOrF",
-  actief: "fldl49e40hA0LnwF9",
+  eraf: "fldl49e40hA0LnwF9",
+  startmailWeek: "fldDtc4DDKdqjEBxR",
   email: "fldClEi5WxnJfpmFI",
   naam: "fldypfInaNvNURVID",
   voornaam: "fldx9Z5jB6cx4gc8W",
@@ -138,8 +139,11 @@ export async function verwerk(peilOverride?: string, droog = false) {
     splitsNamen(rec && rec.fields[F.crewOpCallsheet]).forEach((n) => opCallsheet.add(sleutel(n)));
   });
 
+  // Twee uitzonderingen, allebei positief geformuleerd: leeg betekent altijd meedoen.
+  // Airtable geeft een uitgevinkt vakje niet als nee terug maar laat het veld weg, dus
+  // testen op "is het niet aan" is de enige manier die klopt met wat je in de tabel ziet.
   const meedoen = (await alles(T_CREW)).filter(
-    (r: any) => r.fields[F.actief] !== false && !r.fields[F.geenUren] && String(r.fields[F.email] || "").trim()
+    (r: any) => !r.fields[F.eraf] && !r.fields[F.geenUren] && String(r.fields[F.email] || "").trim()
   );
 
   // Geen crewregels voor deze week? Dan mailen we iedereen die meedoet en zeggen we dat
@@ -151,10 +155,22 @@ export async function verwerk(peilOverride?: string, droog = false) {
   const onbekendeNamen = [...opCallsheet].filter((n) => !gekoppeld.has(n));
   const nietGemaild = meedoen.filter((r: any) => kiezen.indexOf(r) < 0).map((r: any) => String(r.fields[F.naam] || r.id));
 
+  // Slot tegen een dubbele mail. Netlify garandeert dat een geplande functie minstens
+  // een keer draait, niet hoogstens een keer. Draait de ochtendrun twee keer, dan zou
+  // het vinkje twee keer aangaan en gaat de mail twee keer de deur uit. Daarom houden
+  // we per crewlid bij voor welke week de startmail al verstuurd is.
   const namen: string[] = [];
+  const overgeslagen: string[] = [];
   for (const c of kiezen) {
     const velden: any = {};
-    if (start) velden[F.startmail] = true;
+    if (start) {
+      if (String(c.fields[F.startmailWeek] || "") === week) {
+        overgeslagen.push(String(c.fields[F.naam] || c.id));
+        continue;
+      }
+      velden[F.startmail] = true;
+      velden[F.startmailWeek] = week;
+    }
     if (einde) velden[F.herinnering] = true;
     if (!droog) await at("/" + T_CREW + "/" + c.id, { method: "PATCH", body: JSON.stringify({ fields: velden, typecast: true }) });
     namen.push(String(c.fields[F.naam] || c.id));
@@ -171,6 +187,7 @@ export async function verwerk(peilOverride?: string, droog = false) {
     opCallsheet: geenLijst ? "geen crewregels gevonden voor deze week, daarom iedereen gemaild" : [...opCallsheet],
     aangezet: droog ? 0 : namen.length,
     crew: namen,
+    alGemaildDezeWeek: overgeslagen,
     nietGemaild,
     onbekendeNamenOpCallsheet: onbekendeNamen,
   };
