@@ -102,6 +102,7 @@
   .berek .r .l{color:#b9c0cd}
   .berek .r .l small{display:block;color:#79808f;font-size:11px;margin-top:1px}
   .berek .r.tot{border-top:1px solid #363c4b;margin-top:7px;padding-top:9px;font-weight:700;font-size:16px}
+  .berek .uitl{margin-top:9px;font-size:12.5px;line-height:1.45;color:#aeb5c2}
   .berek .r.nul .l,.berek .r.nul span{color:#6b7280}
   .melding{background:#3a2d20;border-left:3px solid #d08a2e;color:#f0d9b5;font-size:12.5px;
     padding:8px 10px;border-radius:6px;margin-top:9px}
@@ -870,6 +871,7 @@ function herbereken(datum){
         ? getal(document.getElementById('f_'+datum+'_km').value)+' km à '+kmTekst(r.materiaal?RS.kmMateriaal:kmTariefIk()) : '', c.kmB);
   h+=rij('Parkeren','', r.park);
   h+='<div class="r tot"><span>Deze dag bovenop je dagprijs</span><span>'+eur(r.totaal)+'</span></div>';
+  if(!otVoorMij()) h+='<div class="uitl">Je valt buiten de overurenregeling, dus er komen geen toeslagen bij. Kilometers en parkeren tellen wel mee.</div>';
   if(r.nachtVrij){
     var vn=volgnummer(datum,'nacht');
     h+='<div class="melding vrij">Dit is nachtdag '+(vn?vn.nr:'?')+' van het blok. '+
@@ -1053,6 +1055,12 @@ function bouwBanners(){
     h+='<div class="banner info"><div>We missen nog '+lijst+'. Zonder adres en postcode kunnen we '+
        'je kilometers niet vooraf uitrekenen.</div>'+
        '<a class="knopje" href="/gegevens?t='+encodeURIComponent(TOKEN)+'">Invullen</a></div>';
+  }
+
+  if(dagprijsBekend() && !otVoorMij()){
+    h+='<div class="banner info"><div>Volgens je contract val je buiten de overurenregeling, je uren zitten in je '+
+       'maandvergoeding. Overuren, nacht, turnaround en zondag rekenen we voor jou dus niet. Kilometers en parkeren '+
+       'krijg je wel vergoed. Vul je dagen gewoon in, dan weet de productie wie er wanneer was.</div></div>';
   }
 
   if(!dagprijsBekend()){
