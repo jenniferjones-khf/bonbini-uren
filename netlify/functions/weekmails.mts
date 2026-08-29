@@ -194,6 +194,7 @@ export async function verwerk(peilOverride?: string, droog = false) {
 }
 
 export default async (req: Request) => {
+  if ((process.env.API_SLEUTEL || "") !== (new URL(req.url).searchParams.get("s") || "")) return new Response(JSON.stringify({ fout: "geen of verkeerde sleutel achter de link" }), { status: 401, headers: { "Content-Type": "application/json" } });
   try {
     // ?datum=2026-11-03 speelt een dag na, ?droog=1 zet niets aan en laat alleen zien
     // wie er mail zou krijgen.
