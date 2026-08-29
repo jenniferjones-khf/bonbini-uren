@@ -20,7 +20,7 @@
 export default async () => {
   for (const pad of ["/api/callsheets", "/api/contracten", "/api/weekmails"]) {
     try {
-      const r = await fetch("https://bonbini-uren.netlify.app" + pad);
+      const r = await fetch("https://bonbini-uren.netlify.app" + pad + "?s=" + encodeURIComponent(process.env.API_SLEUTEL || ""));      
       console.log("ochtendrun", pad, r.status, (await r.text()).slice(0, 600));
     } catch (e: any) {
       console.log("ochtendrun", pad, "mislukt", String(e && e.message ? e.message : e));
