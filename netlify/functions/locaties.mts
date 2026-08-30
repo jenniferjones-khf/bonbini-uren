@@ -40,6 +40,7 @@ const K = {
   map: "fldoYUVeP4QDLmAaO",
   status: "fldXpV75NOakf4pbp",
   voorDecor: "fldFDgBH3om57tzcY",
+  link: "fldOeJwfkusjWGq6B",
 };
 
 const R = {
@@ -166,6 +167,7 @@ async function lijst() {
       adres: r.fields[K.adres] || "",
       notities: r.fields[K.notities] || "",
       status: r.fields[K.status] || "",
+      link: r.fields[K.link] || "",
       decors: r.fields[K.voorDecor] || [],
     })),
     reacties: reacties.map((r: any) => ({

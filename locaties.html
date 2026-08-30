@@ -4,116 +4,177 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Locaties — Bon Bini</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
   :root{
-    --inkt:#12141a; --inkt2:#1c1f28; --lijn2:#e5e7ec;
-    --papier:#f4f5f7; --wit:#ffffff; --grijs:#6b7280; --grijs2:#9aa1ad;
-    --groen:#0f7b52; --groen-l:#e6f4ee; --oranje:#a2600d; --oranje-l:#fdf3e3;
-    --paars:#5b2fa8; --paars-l:#efe9fb; --goud:#d99b09;
-    --schaduw:0 1px 2px rgba(18,20,26,.04), 0 12px 28px -20px rgba(18,20,26,.35);
+    --nacht:#0B0C0F; --paneel:#14161B; --paneel2:#191C22; --lijn:#252932; --lijn2:#333846;
+    --room:#EDEAE4; --zacht:#8D93A0; --zacht2:#5F6572;
+    --goud:#F2B41E; --amber:#F2B41E; --rood:#D8342C;
+    --nl:#7FC4F0; --nl-b:rgba(127,196,240,.16);
+    --at:#8ED8C8; --at-b:rgba(142,216,200,.16);
+    --display:"Bricolage Grotesque","Public Sans",system-ui,sans-serif;
+    --body:"Public Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0}
-  body{background:var(--papier);color:var(--inkt);
-    font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+  body{background:var(--nacht);color:var(--room);font:16px/1.55 var(--body);
     padding-bottom:80px;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:1080px;margin:0 auto;padding:0 18px}
+  .wrap{max-width:1240px;margin:0 auto;padding:0 24px}
+  a{color:inherit}
 
-  header{background:var(--inkt);color:#fff;padding:26px 0 24px}
-  .prod{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#8c93a3;margin:0 0 8px}
-  h1{font-size:26px;margin:0;font-weight:660;letter-spacing:-.02em}
-  header p{color:#aeb5c2;font-size:14px;margin:8px 0 0;max-width:60ch}
-  .telling{display:flex;gap:26px;margin-top:18px;flex-wrap:wrap}
-  .telling div{font-size:12px;color:#8c93a3;letter-spacing:.04em}
-  .telling b{display:block;font-size:22px;color:#fff;font-weight:640;letter-spacing:-.01em;
+  /* ---------- hero ---------- */
+  .hero{position:relative;overflow:hidden;border-bottom:1px solid var(--lijn);
+    background:var(--nacht)}
+  .hero::before{content:"";position:absolute;inset:-40% -10% auto -10%;height:560px;
+    background:radial-gradient(58% 70% at 18% 0%, rgba(242,180,30,.20), transparent 70%),
+               radial-gradient(50% 60% at 78% 6%, rgba(216,52,44,.16), transparent 70%),
+               radial-gradient(45% 55% at 50% 30%, rgba(127,196,240,.10), transparent 72%);
+    filter:blur(12px);pointer-events:none}
+  .hero .wrap{position:relative;padding-top:52px;padding-bottom:38px}
+  .oog{font:500 11px/1 var(--mono);letter-spacing:.24em;text-transform:uppercase;color:var(--rood);margin:0 0 18px}
+  h1{font-family:var(--display);font-weight:800;font-size:clamp(42px,7.6vw,84px);line-height:.9;
+    letter-spacing:-.04em;margin:0;text-wrap:balance;text-transform:uppercase;color:var(--goud);
+    text-shadow:0 2px 0 rgba(216,52,44,.55), 0 14px 40px rgba(242,180,30,.16)}
+  h1 em{font-style:normal;display:block;color:var(--room);font-size:.42em;letter-spacing:-.02em;
+    text-transform:none;text-shadow:none;margin-top:14px;font-weight:500}
+  .intro{color:var(--zacht);font-size:16px;margin:18px 0 0;max-width:56ch}
+
+  .cijfers{display:flex;gap:44px;flex-wrap:wrap;margin-top:34px;padding-top:24px;border-top:1px solid var(--lijn)}
+  .cijfers div{min-width:78px}
+  .cijfers b{display:block;font-family:var(--display);font-weight:700;font-size:34px;line-height:1;color:var(--goud);
+    letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+  .cijfers span{font:400 11px/1.4 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--zacht2);
+    display:block;margin-top:8px}
+
+  /* ---------- balk ---------- */
+  .balk{position:sticky;top:0;z-index:20;background:rgba(11,12,15,.82);backdrop-filter:saturate(150%) blur(14px);
+    border-bottom:1px solid var(--lijn)}
+  .balk .wrap{display:flex;gap:14px;flex-wrap:wrap;align-items:center;padding-top:12px;padding-bottom:12px}
+  .pillen{display:flex;gap:3px;background:var(--paneel);border:1px solid var(--lijn);border-radius:999px;padding:3px}
+  .pil{border:0;background:none;border-radius:999px;padding:7px 15px;cursor:pointer;color:var(--zacht);
+    font:500 13px var(--body);white-space:nowrap;transition:color .15s,background .15s}
+  .pil:hover{color:var(--room)}
+  .pil.aan{background:var(--room);color:var(--nacht)}
+  .ikben{margin-left:auto;display:flex;gap:7px;align-items:center;
+    font:400 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--zacht2)}
+  .ikben input{border:1px solid var(--lijn);border-radius:999px;padding:8px 14px;background:var(--paneel);
+    color:var(--room);font:400 13px var(--body);width:132px;text-transform:none;letter-spacing:0}
+  .ikben input::placeholder{color:var(--zacht2)}
+  .ikben input:focus{outline:0;border-color:var(--amber)}
+
+  /* ---------- raster ---------- */
+  main{padding-top:34px}
+  .sectie{font:500 11px/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--zacht2);
+    margin:38px 0 16px;display:flex;align-items:center;gap:14px}
+  .sectie:first-child{margin-top:0}
+  .sectie::after{content:"";flex:1;height:1px;background:var(--lijn)}
+  .raster{display:grid;gap:22px;grid-template-columns:repeat(auto-fill,minmax(400px,1fr))}
+
+  .kaart{background:var(--paneel);border:1px solid var(--lijn);border-radius:18px;overflow:hidden;
+    display:flex;flex-direction:column;opacity:0;transform:translateY(14px);
+    animation:opkomen .5s cubic-bezier(.2,.7,.3,1) forwards}
+  @keyframes opkomen{to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){.kaart{animation:none;opacity:1;transform:none}}
+
+  .beeld{position:relative;aspect-ratio:3/2;background:var(--paneel2);overflow:hidden;display:block}
+  .beeld img{width:100%;height:100%;object-fit:cover;display:block;
+    transition:transform .6s cubic-bezier(.2,.7,.3,1);cursor:zoom-in}
+  .kaart:hover .beeld img{transform:scale(1.035)}
+  .beeld::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(to top,rgba(11,12,15,.92) 0%,rgba(11,12,15,.45) 34%,transparent 62%)}
+  .leegbeeld{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    color:var(--zacht2);font:400 12px var(--mono);letter-spacing:.08em;text-align:center;padding:20px;
+    background:repeating-linear-gradient(135deg,#15181E,#15181E 14px,#181B22 14px,#181B22 28px)}
+
+  .opbeeld{position:absolute;left:0;right:0;bottom:0;padding:18px 20px;z-index:2;display:flex;
+    align-items:flex-end;gap:12px}
+  .opbeeld h2{font-family:var(--display);font-weight:700;font-size:23px;line-height:1.1;
+    letter-spacing:-.02em;margin:0;flex:1;text-shadow:0 1px 14px rgba(0,0,0,.5)}
+  .cijfer{flex:0 0 auto;width:54px;height:54px;border-radius:50%;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;background:rgba(11,12,15,.72);border:1px solid var(--lijn2);
+    backdrop-filter:blur(6px)}
+  .cijfer b{font-family:var(--display);font-weight:700;font-size:19px;line-height:1;color:var(--goud);
     font-variant-numeric:tabular-nums}
+  .cijfer span{font:400 8.5px/1 var(--mono);color:var(--zacht2);margin-top:3px;letter-spacing:.06em}
+  .cijfer.leeg b{color:var(--zacht2);font-size:15px}
 
-  .balk{background:rgba(244,245,247,.92);backdrop-filter:blur(8px);
-    border-bottom:1px solid var(--lijn2);position:sticky;top:0;z-index:5}
-  .balk .wrap{display:flex;gap:16px;flex-wrap:wrap;align-items:center;padding-top:11px;padding-bottom:11px}
-  .groep{display:flex;gap:4px;background:var(--wit);border:1px solid var(--lijn2);border-radius:10px;padding:3px}
-  .knop{border:0;background:none;border-radius:7px;padding:6px 12px;font:inherit;font-size:13px;
-    cursor:pointer;color:var(--grijs);white-space:nowrap}
-  .knop.aan{background:var(--inkt);color:#fff}
-  .ikben{margin-left:auto;display:flex;gap:6px;align-items:center;font-size:13px;color:var(--grijs)}
-  .ikben input{border:1px solid var(--lijn2);border-radius:9px;padding:7px 10px;font:inherit;
-    font-size:13px;width:120px;background:var(--wit)}
-  .ikben input:focus{outline:2px solid var(--inkt);outline-offset:-1px}
+  .merken{position:absolute;top:14px;left:14px;z-index:2;display:flex;gap:6px;flex-wrap:wrap}
+  .merk{font:500 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;padding:6px 10px;
+    border-radius:999px;background:rgba(11,12,15,.66);border:1px solid var(--lijn2);color:var(--zacht);
+    backdrop-filter:blur(6px)}
+  .merk.nl{color:var(--nl);border-color:rgba(143,182,255,.3);background:var(--nl-b)}
+  .merk.at{color:var(--at);border-color:rgba(126,211,168,.3);background:var(--at-b)}
 
-  main{padding-top:22px}
-  .blokkop{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--grijs2);
-    margin:26px 0 12px;font-weight:600}
-  .blokkop:first-child{margin-top:0}
+  .lijf{padding:18px 20px 20px;display:flex;flex-direction:column;gap:14px;flex:1}
+  .voor{font:400 12px var(--mono);letter-spacing:.02em;color:var(--zacht2);margin:0;line-height:1.6}
+  .voor b{color:var(--zacht);font-weight:400}
+  .tekst{margin:0;font-size:14.5px;color:#C6C9D0;white-space:pre-wrap;line-height:1.6}
+  .extern{align-self:flex-start;font:600 12px var(--body);color:var(--nacht);background:var(--goud);
+    text-decoration:none;padding:8px 14px;border-radius:999px}
 
-  .kaart{background:var(--wit);border:1px solid var(--lijn2);border-radius:16px;margin-bottom:18px;
-    overflow:hidden;box-shadow:var(--schaduw)}
-  .cover{position:relative;aspect-ratio:21/9;background:#e9ebef;display:block;width:100%;
-    object-fit:cover;border-bottom:1px solid var(--lijn2)}
-  .coverleeg{aspect-ratio:21/9;background:repeating-linear-gradient(45deg,#eceef2,#eceef2 12px,#e6e8ee 12px,#e6e8ee 24px);
-    display:flex;align-items:center;justify-content:center;color:var(--grijs2);font-size:13px}
+  .strip{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin:0 -2px;scrollbar-width:thin;
+    scrollbar-color:var(--lijn2) transparent}
+  .strip::-webkit-scrollbar{height:6px}
+  .strip::-webkit-scrollbar-thumb{background:var(--lijn2);border-radius:99px}
+  .strip img{width:96px;height:66px;flex:0 0 auto;object-fit:cover;border-radius:8px;background:var(--paneel2);
+    cursor:zoom-in;opacity:.82;transition:opacity .2s,transform .2s}
+  .strip img:hover{opacity:1;transform:translateY(-2px)}
+  .strip .rest{width:96px;height:66px;flex:0 0 auto;border-radius:8px;border:1px dashed var(--lijn2);
+    display:flex;align-items:center;justify-content:center;font:400 10px var(--mono);color:var(--zacht2);
+    text-align:center;padding:6px;line-height:1.4}
 
-  .kop{padding:16px 20px 12px;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
-  .kop h2{font-size:19px;margin:0;font-weight:650;letter-spacing:-.01em}
-  .chip{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;
-    padding:4px 10px;border:1px solid var(--lijn2);color:var(--grijs);white-space:nowrap;font-weight:600}
-  .chip.nl{background:var(--paars-l);border-color:#ded3f7;color:var(--paars)}
-  .chip.at{background:var(--groen-l);border-color:#c9e7da;color:var(--groen)}
-  .score{margin-left:auto;text-align:right;font-size:12px;color:var(--grijs2);line-height:1.3}
-  .score b{display:block;font-size:24px;color:var(--inkt);font-weight:650;font-variant-numeric:tabular-nums}
-  .score.leeg b{color:var(--grijs2);font-weight:500}
-
-  .body{padding:0 20px 18px}
-  .meta{font-size:13.5px;color:var(--grijs);margin:0 0 6px}
-  .meta span{color:var(--inkt)}
-  .notitie{font-size:14px;color:#3c414d;white-space:pre-wrap;margin:10px 0 0;max-width:70ch}
-
-  .strip{display:flex;gap:6px;overflow-x:auto;padding:14px 0 4px;scrollbar-width:thin}
-  .strip img{width:112px;height:76px;flex:0 0 auto;object-fit:cover;border-radius:9px;
-    background:#e9ebef;cursor:zoom-in;border:1px solid var(--lijn2)}
-  .strip .rest{width:112px;height:76px;flex:0 0 auto;border-radius:9px;border:1px dashed var(--lijn2);
-    display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--grijs2);text-align:center;padding:6px}
-
-  .reactie{border-top:1px solid var(--lijn2);margin-top:14px;padding-top:14px;
-    display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-  .sterren{display:flex;gap:1px}
-  .ster{background:none;border:0;font-size:25px;line-height:1;cursor:pointer;color:#dcdfe6;padding:0 1px;
-    transition:color .12s}
+  .stem{border-top:1px solid var(--lijn);padding-top:14px;margin-top:auto;
+    display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .sterren{display:flex;gap:2px}
+  .ster{background:none;border:0;font-size:23px;line-height:1;cursor:pointer;color:#2E333D;padding:0;
+    transition:color .12s,transform .12s}
   .ster.aan{color:var(--goud)}
-  .ster:hover{color:#efc352}
-  .reactie textarea{flex:1;min-width:230px;border:1px solid var(--lijn2);border-radius:10px;
-    padding:9px 12px;font:inherit;font-size:14px;resize:vertical;min-height:40px;background:var(--papier)}
-  .reactie textarea:focus{outline:2px solid var(--inkt);outline-offset:-1px;background:var(--wit)}
-  .bewaar{background:var(--inkt);color:#fff;border:0;border-radius:10px;padding:10px 18px;font:inherit;
-    font-size:14px;font-weight:550;cursor:pointer}
-  .bewaar:disabled{opacity:.5}
+  .sterren:hover .ster{color:#3A404C}
+  .sterren .ster:hover,.sterren .ster:hover ~ .ster{color:#3A404C}
+  .sterren:hover .ster.aan{color:var(--goud)}
+  .stem textarea{flex:1;min-width:180px;border:1px solid var(--lijn);border-radius:12px;padding:10px 13px;
+    background:var(--paneel2);color:var(--room);font:400 14px var(--body);resize:vertical;min-height:42px}
+  .stem textarea::placeholder{color:var(--zacht2)}
+  .stem textarea:focus{outline:0;border-color:var(--amber)}
+  .bewaar{background:var(--goud);color:#231A05;border:0;border-radius:999px;padding:10px 18px;
+    font:600 13px var(--body);cursor:pointer;transition:opacity .15s}
+  .bewaar:hover{opacity:.85}
+  .bewaar:disabled{opacity:.4;cursor:default}
 
-  .gezegd{margin-top:14px;display:flex;flex-direction:column;gap:8px}
-  .zei{background:var(--papier);border-radius:10px;padding:9px 12px;font-size:13.5px;color:#3c414d}
-  .zei b{color:var(--inkt);font-weight:600}
-  .zei .st{color:var(--goud);letter-spacing:1px}
+  .gezegd{display:flex;flex-direction:column;gap:8px}
+  .zei{background:var(--paneel2);border-radius:12px;padding:11px 14px;font-size:14px;color:#C6C9D0;line-height:1.55}
+  .zei b{color:var(--room);font-weight:600}
+  .zei .st{color:var(--goud);letter-spacing:1px;font-size:12px}
+  .zei .wie{display:flex;gap:8px;align-items:baseline;margin-bottom:2px}
 
-  table{width:100%;border-collapse:separate;border-spacing:0;background:var(--wit);
-    border:1px solid var(--lijn2);border-radius:14px;overflow:hidden;box-shadow:var(--schaduw)}
-  th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--lijn2);font-size:14px;vertical-align:top}
-  th{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--grijs2);font-weight:650;
-    background:var(--papier)}
+  /* ---------- tabel ---------- */
+  .tabelwrap{overflow-x:auto;border:1px solid var(--lijn);border-radius:16px;background:var(--paneel)}
+  table{width:100%;border-collapse:collapse;min-width:760px}
+  th,td{text-align:left;padding:13px 18px;border-bottom:1px solid var(--lijn);font-size:14px;vertical-align:top}
+  th{font:500 10px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--zacht2);
+    background:var(--paneel2);position:sticky;top:0}
   tr:last-child td{border-bottom:0}
-  td.num{text-align:right;font-variant-numeric:tabular-nums}
-  .groepkop td{background:#eef0f4;font-weight:650;font-size:13px;letter-spacing:.01em}
+  td.num{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono);font-size:13px}
+  td.stil{color:var(--zacht2)}
+  .groepkop td{background:#1B1F27;font-family:var(--display);font-weight:700;font-size:14px;letter-spacing:-.01em}
 
-  .melding{background:var(--oranje-l);border:1px solid #f0dcb8;color:var(--oranje);
-    border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:14px}
-  .laden{color:var(--grijs2);font-size:14px;padding:26px 0}
+  .melding{background:rgba(233,162,59,.1);border:1px solid rgba(233,162,59,.3);color:var(--amber);
+    border-radius:14px;padding:13px 18px;margin-bottom:18px;font-size:14px}
+  .laden{color:var(--zacht2);font:400 13px var(--mono);letter-spacing:.1em;padding:40px 0;text-transform:uppercase}
 
-  dialog{border:0;border-radius:14px;padding:0;background:#000;max-width:96vw;max-height:96vh}
-  dialog::backdrop{background:rgba(10,11,14,.82)}
+  dialog{border:0;border-radius:16px;padding:0;background:#000;max-width:96vw;max-height:96vh;overflow:hidden}
+  dialog::backdrop{background:rgba(6,7,9,.9);backdrop-filter:blur(4px)}
   dialog img{max-width:96vw;max-height:90vh;display:block}
-  dialog form{position:absolute;top:10px;right:10px}
-  dialog button{background:rgba(0,0,0,.55);color:#fff;border:0;border-radius:9px;padding:7px 14px;
-    cursor:pointer;font:inherit;font-size:13px}
+  dialog form{position:absolute;top:12px;right:12px}
+  dialog button{background:rgba(11,12,15,.7);color:var(--room);border:1px solid var(--lijn2);border-radius:999px;
+    padding:8px 16px;cursor:pointer;font:500 12px var(--body);backdrop-filter:blur(6px)}
 
-  @media (max-width:640px){
-    .cover,.coverleeg{aspect-ratio:16/9}
+  @media (max-width:760px){
+    .wrap{padding:0 16px}
+    .raster{grid-template-columns:1fr}
+    .cijfers{gap:26px}
     .ikben{margin-left:0;width:100%}
     .ikben input{flex:1;width:auto}
   }
@@ -121,25 +182,25 @@
 </head>
 <body>
 
-<header>
+<div class="hero">
   <div class="wrap">
-    <p class="prod">Bon Bini — Jetzt Geht's Los</p>
-    <h1>Locaties</h1>
-    <p>Wat de scout heeft aangedragen, naast wat het script vraagt. Geef per locatie een cijfer en zeg wat je ervan vindt, dan zien we in één oogopslag waar we op uitkomen.</p>
-    <div class="telling" id="telling"></div>
+    <p class="oog">Bon Bini 6 · Jetzt Geht's Los</p>
+    <h1>Locaties<em>Waar draaien we dit?</em></h1>
+    <p class="intro">Alles wat de scout heeft aangedragen, naast wat het script vraagt. Geef een cijfer, zeg wat je ervan vindt, en we zien meteen waar we op uitkomen.</p>
+    <div class="cijfers" id="cijfers"></div>
   </div>
-</header>
+</div>
 
 <div class="balk">
   <div class="wrap">
-    <div class="groep">
-      <button class="knop aan" data-tab="kandidaten">Van de scout</button>
-      <button class="knop" data-tab="decors">Wat het script vraagt</button>
+    <div class="pillen">
+      <button class="pil aan" data-tab="kandidaten">Van de scout</button>
+      <button class="pil" data-tab="decors">Wat het script vraagt</button>
     </div>
-    <div class="groep">
-      <button class="knop aan" data-blok="alles">Alles</button>
-      <button class="knop" data-blok="Nederland">Nederland</button>
-      <button class="knop" data-blok="Oostenrijk">Oostenrijk</button>
+    <div class="pillen">
+      <button class="pil aan" data-blok="alles">Alles</button>
+      <button class="pil" data-blok="Nederland">Nederland</button>
+      <button class="pil" data-blok="Oostenrijk">Oostenrijk</button>
     </div>
     <span class="ikben">
       Ik ben <input id="wie" placeholder="je naam" autocomplete="name">
@@ -192,7 +253,7 @@ async function haal() {
     const d = await r.json();
     if (d.fout) throw new Error(d.fout);
     data = d;
-    tellen();
+    cijfers();
     teken();
   } catch (e) {
     document.getElementById("inhoud").innerHTML =
@@ -200,14 +261,16 @@ async function haal() {
   }
 }
 
-function tellen() {
+function cijfers() {
   const beoordeeld = new Set(data.reacties.filter((r) => r.cijfer > 0).map((r) => r.kandidaat));
   const mensen = new Set(data.reacties.map((r) => (r.wie || "").toLowerCase()).filter(Boolean));
-  document.getElementById("telling").innerHTML =
-    "<div><b>" + data.kandidaten.length + "</b>locaties bekeken</div>" +
-    "<div><b>" + beoordeeld.size + "</b>al beoordeeld</div>" +
-    "<div><b>" + data.decors.length + "</b>decors in het script</div>" +
-    "<div><b>" + mensen.size + "</b>mensen reageerden</div>";
+  const scenes = data.decors.reduce((a, d) => a + (d.scenes || 0), 0);
+  document.getElementById("cijfers").innerHTML =
+    "<div><b>" + data.kandidaten.length + "</b><span>opties</span></div>" +
+    "<div><b>" + beoordeeld.size + "</b><span>beoordeeld</span></div>" +
+    "<div><b>" + data.decors.length + "</b><span>decors</span></div>" +
+    "<div><b>" + scenes + "</b><span>scenes</span></div>" +
+    "<div><b>" + mensen.size + "</b><span>stemmen</span></div>";
 }
 
 function decorNamen(ids) {
@@ -219,7 +282,10 @@ function teken() {
   el.className = "";
   el.innerHTML = tab === "kandidaten" ? tekenKandidaten() : tekenDecors();
   if (tab === "kandidaten") {
-    document.querySelectorAll(".kaart[data-kandidaat]").forEach((kaart) => laadFotos(kaart));
+    document.querySelectorAll(".kaart[data-kandidaat]").forEach((k, i) => {
+      k.style.animationDelay = Math.min(i * 45, 400) + "ms";
+      laadFotos(k);
+    });
     knoppen();
   }
 }
@@ -231,55 +297,58 @@ function tekenKandidaten() {
   if (!lijst.length) return '<div class="melding">Geen locaties in dit blok.</div>';
 
   const mijn = (wieVeld.value || "").toLowerCase();
-  let uit = "", vorigBlok = "";
+  let uit = "", vorigBlok = "", open = false;
 
   lijst.forEach((k) => {
     if (k.blok !== vorigBlok) {
-      uit += '<p class="blokkop">' + ontsnap(k.blok) + "</p>";
-      vorigBlok = k.blok;
+      if (open) uit += "</div>";
+      uit += '<p class="sectie">' + ontsnap(k.blok) + "</p><div class=\"raster\">";
+      vorigBlok = k.blok; open = true;
     }
     const rs = data.reacties.filter((r) => r.kandidaat === k.id);
-    const cijfers = rs.filter((r) => r.cijfer > 0).map((r) => r.cijfer);
-    const gem = cijfers.length ? (cijfers.reduce((a, b) => a + b, 0) / cijfers.length).toFixed(1) : "";
+    const cf = rs.filter((r) => r.cijfer > 0).map((r) => r.cijfer);
+    const gem = cf.length ? (cf.reduce((a, b) => a + b, 0) / cf.length).toFixed(1) : "";
     const eigen = rs.filter((r) => (r.wie || "").toLowerCase() === mijn)[0] || { cijfer: 0, opmerking: "" };
     const voor = decorNamen(k.decors);
 
-    uit += '<section class="kaart" data-kandidaat="' + k.id + '">' +
-      '<div class="coverplek"><div class="coverleeg">foto\'s laden…</div></div>' +
-      '<div class="kop">' +
-        "<h2>" + ontsnap(k.naam) + "</h2>" +
-        '<span class="chip ' + (k.blok === "Nederland" ? "nl" : "at") + '">' + ontsnap(k.blok) + "</span>" +
-        '<span class="chip">' + ontsnap(k.status) + "</span>" +
-        '<span class="score' + (cijfers.length ? "" : " leeg") + '"><b>' + (gem || "—") + "</b>" +
-          (cijfers.length ? cijfers.length + " reactie" + (cijfers.length === 1 ? "" : "s") : "nog geen cijfer") +
-        "</span>" +
+    uit += '<article class="kaart" data-kandidaat="' + k.id + '">' +
+      '<div class="beeld">' +
+        '<div class="merken">' +
+          '<span class="merk ' + (k.blok === "Nederland" ? "nl" : "at") + '">' + ontsnap(k.blok) + "</span>" +
+          '<span class="merk">' + ontsnap(k.status) + "</span>" +
+        "</div>" +
+        '<div class="leegbeeld">foto\'s laden</div>' +
+        '<div class="opbeeld">' +
+          "<h2>" + ontsnap(k.naam) + "</h2>" +
+          '<div class="cijfer' + (cf.length ? "" : " leeg") + '"><b>' + (gem || "—") + "</b><span>" +
+            (cf.length ? cf.length + "x" : "nog niet") + "</span></div>" +
+        "</div>" +
       "</div>" +
-      '<div class="body">' +
-        (voor.length
-          ? '<p class="meta">Voorgesteld voor <span>' + voor.map(ontsnap).join(", ") + "</span></p>"
-          : '<p class="meta">Nog niet gekoppeld aan een decor</p>') +
-        (k.adres ? '<p class="meta">' + ontsnap(k.adres) + "</p>" : "") +
-        (k.notities ? '<p class="notitie">' + ontsnap(k.notities) + "</p>" : "") +
+      '<div class="lijf">' +
+        (voor.length ? '<p class="voor">Voor <b>' + voor.map(ontsnap).join(" · ") + "</b></p>"
+                     : '<p class="voor">Nog niet aan een decor gekoppeld</p>') +
+        (k.adres ? '<p class="voor">' + ontsnap(k.adres) + "</p>" : "") +
+        (k.notities ? '<p class="tekst">' + ontsnap(k.notities) + "</p>" : "") +
+        (k.link ? '<a class="extern" href="' + ontsnap(k.link) + '" target="_blank" rel="noopener">Bekijk de advertentie</a>' : "") +
         '<div class="strip"></div>' +
-        '<div class="reactie">' +
+        '<div class="stem">' +
           '<div class="sterren" data-voor="' + k.id + '">' +
             [1, 2, 3, 4, 5].map((n) =>
               '<button class="ster' + (n <= eigen.cijfer ? " aan" : "") + '" data-cijfer="' + n +
-              '" title="' + n + ' van 5">&#9733;</button>').join("") +
+              '" aria-label="' + n + ' van 5">&#9733;</button>').join("") +
           "</div>" +
           '<textarea placeholder="Wat vind je ervan?">' + ontsnap(eigen.opmerking) + "</textarea>" +
           '<button class="bewaar">Bewaren</button>' +
         "</div>" +
-        (rs.length
-          ? '<div class="gezegd">' + rs.map((r) =>
-              '<div class="zei"><b>' + ontsnap(r.wie) + (r.afdeling ? " · " + ontsnap(r.afdeling) : "") + "</b> " +
-              (r.cijfer ? '<span class="st">' + "&#9733;".repeat(r.cijfer) + "</span> " : "") +
-              ontsnap(r.opmerking) + "</div>").join("") + "</div>"
-          : "") +
+        (rs.length ? '<div class="gezegd">' + rs.map((r) =>
+            '<div class="zei"><div class="wie"><b>' + ontsnap(r.wie) + "</b>" +
+            (r.afdeling ? '<span class="voor">' + ontsnap(r.afdeling) + "</span>" : "") +
+            (r.cijfer ? '<span class="st">' + "&#9733;".repeat(r.cijfer) + "</span>" : "") + "</div>" +
+            ontsnap(r.opmerking) + "</div>").join("") + "</div>" : "") +
       "</div>" +
-    "</section>";
+    "</article>";
   });
-  return uit;
+  return uit + (open ? "</div>" : "");
 }
 
 function tekenDecors() {
@@ -288,7 +357,8 @@ function tekenDecors() {
     if (blok === "Nederland") return d.draaitIn === "NL" || d.draaitIn === "NL/AT";
     return d.draaitIn === "AT" || d.draaitIn === "NL/AT";
   });
-  let uit = "<table><tr><th>Decor</th><th>INT/EXT</th><th>Scenes</th><th>Draait in</th><th>Status</th><th>Kandidaten</th></tr>";
+  let uit = '<div class="tabelwrap"><table><thead><tr><th>Decor</th><th>Int/ext</th><th>Scenes</th>' +
+    "<th>Draait in</th><th>Status</th><th>Opties</th></tr></thead><tbody>";
   let vorig = "";
   lijst.forEach((d) => {
     if (d.hoofd !== vorig) {
@@ -296,11 +366,12 @@ function tekenDecors() {
       vorig = d.hoofd;
     }
     const kand = data.kandidaten.filter((k) => k.decors.indexOf(d.id) > -1).map((k) => k.naam);
-    uit += "<tr><td>" + ontsnap(d.decor) + "</td><td>" + ontsnap(d.intext) + '</td><td class="num">' +
-      d.scenes + "</td><td>" + ontsnap(d.draaitIn) + "</td><td>" + ontsnap(d.status) + "</td><td>" +
-      (kand.length ? kand.map(ontsnap).join(", ") : "—") + "</td></tr>";
+    uit += "<tr><td>" + ontsnap(d.decor) + '</td><td class="stil">' + ontsnap(d.intext) +
+      '</td><td class="num">' + d.scenes + '</td><td class="stil">' + ontsnap(d.draaitIn) +
+      '</td><td class="stil">' + ontsnap(d.status) + "</td><td>" +
+      (kand.length ? kand.map(ontsnap).join(", ") : '<span class="stil">—</span>') + "</td></tr>";
   });
-  return uit + "</table>";
+  return uit + "</tbody></table></div>";
 }
 
 function opener(src) {
@@ -313,7 +384,8 @@ function opener(src) {
 
 async function laadFotos(kaart) {
   const id = kaart.dataset.kandidaat;
-  const coverplek = kaart.querySelector(".coverplek");
+  const beeld = kaart.querySelector(".beeld");
+  const leeg = beeld.querySelector(".leegbeeld");
   const strip = kaart.querySelector(".strip");
   try {
     if (!fotocache[id]) {
@@ -323,24 +395,27 @@ async function laadFotos(kaart) {
     }
     const fotos = fotocache[id];
     if (!fotos.length) {
-      coverplek.innerHTML = '<div class="coverleeg">Nog geen foto\'s in de map van deze locatie</div>';
+      leeg.textContent = "nog geen foto's";
       strip.remove();
       return;
     }
-
     const klein = (p) => api("actie=foto&pad=" + encodeURIComponent(p));
     const groot = (p) => api("actie=groot&pad=" + encodeURIComponent(p));
 
-    coverplek.innerHTML = '<img class="cover" loading="lazy" alt="" src="' + klein(fotos[0].pad) + '">';
-    coverplek.querySelector("img").addEventListener("click", opener(groot(fotos[0].pad)));
+    const cover = new Image();
+    cover.alt = "";
+    cover.src = klein(fotos[0].pad);
+    cover.addEventListener("click", opener(groot(fotos[0].pad)));
+    cover.addEventListener("load", () => leeg.remove());
+    beeld.insertBefore(cover, beeld.firstChild);
 
-    const rest = fotos.slice(1, 15);
+    const rest = fotos.slice(1, 16);
     strip.innerHTML = rest.map((f) =>
       '<img loading="lazy" alt="" src="' + klein(f.pad) + '" data-groot="' + groot(f.pad) + '">').join("") +
-      (fotos.length > 15 ? '<div class="rest">nog ' + (fotos.length - 15) + " in Dropbox</div>" : "");
+      (fotos.length > 16 ? '<div class="rest">nog ' + (fotos.length - 16) + "<br>in Dropbox</div>" : "");
     strip.querySelectorAll("img").forEach((img) => img.addEventListener("click", opener(img.dataset.groot)));
   } catch (e) {
-    coverplek.innerHTML = '<div class="coverleeg">Foto\'s niet gelukt: ' + ontsnap(e.message) + "</div>";
+    leeg.textContent = "foto's niet gelukt";
   }
 }
 
@@ -358,7 +433,7 @@ function knoppen() {
     const rij = kaart.querySelector(".sterren");
     const wie = wieVeld.value.trim();
     if (!wie) { toon("Vul eerst je naam in, rechtsboven."); wieVeld.focus(); return; }
-    knop.disabled = true; knop.textContent = "Bezig…";
+    knop.disabled = true; knop.textContent = "Bezig";
     try {
       const r = await fetch(api("actie=reactie"), {
         method: "POST",
