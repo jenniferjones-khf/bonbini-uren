@@ -185,7 +185,6 @@
       <button class="pil" data-blok="Nederland">Nederland</button>
       <button class="pil" data-blok="Oostenrijk">Oostenrijk</button>
     </div>
-    <span class="stijlkiezer" id="stijlkiezer">Stijl</span>
     <span class="ikben">
       Ik ben <input id="wie" placeholder="je naam" autocomplete="name">
       <input id="afdeling" placeholder="afdeling">
@@ -209,12 +208,6 @@ const fotocache = {};
 
 const gekozenStijl = (params.get("stijl") || "a").toLowerCase();
 document.documentElement.dataset.stijl = ["a", "b", "c"].indexOf(gekozenStijl) > -1 ? gekozenStijl : "a";
-document.getElementById("stijlkiezer").insertAdjacentHTML("beforeend",
-  ["a", "b", "c"].map((s) => {
-    const p = new URLSearchParams(location.search); p.set("stijl", s);
-    return '<a href="?' + p.toString() + '"' + (s === document.documentElement.dataset.stijl ? ' class="aan"' : "") +
-      ">" + s.toUpperCase() + "</a>";
-  }).join(""));
 
 const wieVeld = document.getElementById("wie");
 const afdVeld = document.getElementById("afdeling");
