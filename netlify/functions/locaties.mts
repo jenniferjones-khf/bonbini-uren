@@ -20,7 +20,7 @@ const BASE = "app4HQkMqFpZCnqpv";
 const TB_DECORS = "tbljinqf7KnDAJ2dc";
 const TB_KANDIDATEN = "tbldTqBvnxfLcHUZI";
 const TB_REACTIES = "tblkbS3gyg6YewYjK";
-const TB_PLANNING = "tbltzk59cjqgKkHOt";
+const TB_PLANNING = "tblGNMnWzaDEApj9x";
 
 const D = {
   decor: "fldh1eoX3WQi8gKhL",
@@ -45,15 +45,17 @@ const K = {
 };
 
 const P = {
-  dag: "flds9yAxSLDDzBIj3",
-  datum: "fldhrNgpygrecywJj",
-  blok: "fldbuoJ9ujgBVUCQj",
-  sets: "fldT2wl420dnsc8j1",
-  decor: "fldinmqDvSgCRtC6y",
-  scenes: "flddr2OOhXKw6tRzA",
-  aantal: "fldSf3HiyVrnYtmoq",
-  paginas: "fldwer33sATTDQxx5",
-  figuratie: "fldv2mQhaClLmIJWU",
+  scene: "fldRGYBt7VR4ppzJu",
+  dag: "flddZUSREiPlqp0hN",
+  datum: "fldPlmZQxMCUfz3GU",
+  blok: "fld10EYfyKgXUq6Mx",
+  intext: "fldEM1sogYGSi8Rkb",
+  dagdeel: "fld1naFPM1EHKHm7T",
+  set: "fldqIidSloWgqYNKQ",
+  decor: "fldXzxuQQqk4z8xj7",
+  waarover: "fldOZCBYRXpDTwo9f",
+  paginas: "fldqOEKQi4n5UvaOU",
+  figuratie: "fld0C6SNwH7dMeVjm",
 };
 
 const R = {
@@ -187,17 +189,24 @@ async function lijst() {
     })),
     planning: planning
       .map((r: any) => ({
+        scene: r.fields[P.scene] || "",
         dag: r.fields[P.dag] || "",
         datum: r.fields[P.datum] || "",
         blok: r.fields[P.blok] || "",
-        sets: r.fields[P.sets] || "",
+        intext: r.fields[P.intext] || "",
+        dagdeel: r.fields[P.dagdeel] || "",
+        set: r.fields[P.set] || "",
         decor: r.fields[P.decor] || "",
-        scenes: r.fields[P.scenes] || "",
-        aantal: r.fields[P.aantal] || 0,
+        waarover: r.fields[P.waarover] || "",
         paginas: r.fields[P.paginas] || "",
         figuratie: r.fields[P.figuratie] || 0,
       }))
-      .sort((a: any, b: any) => String(a.datum).localeCompare(String(b.datum))),
+      .sort((a: any, b: any) => {
+        const d = String(a.datum).localeCompare(String(b.datum));
+        if (d) return d;
+        const n = (x: string) => parseInt(String(x).replace(/\D+/g, ""), 10) || 0;
+        return n(a.dag) - n(b.dag);
+      }),
     reacties: reacties.map((r: any) => ({
       id: r.id,
       kandidaat: (r.fields[R.kandidaat] || [])[0] || "",
