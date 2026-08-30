@@ -359,7 +359,8 @@ export async function verwerk() {
   return { gelezen: gedaan, controleren: gemeld, nietGekoppeld, overgeslagen, bekeken: beste.size };
 }
 
-export default async () => {
+export default async (req: Request) => {
+  if ((process.env.API_SLEUTEL || "") !== (new URL(req.url).searchParams.get("s") || "")) return new Response(JSON.stringify({ fout: "geen of verkeerde sleutel achter de link" }), { status: 401, headers: { "Content-Type": "application/json" } });
   try {
     const uit = await verwerk();
     return new Response(JSON.stringify(uit, null, 2), {
