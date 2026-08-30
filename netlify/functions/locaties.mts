@@ -131,7 +131,7 @@ async function alleRecords(tabel: string) {
   const uit: any[] = [];
   let offset = "";
   do {
-    const d = await airtable(encodeURIComponent(tabel) + "?pageSize=100" + (offset ? "&offset=" + offset : ""));
+    const d = await airtable(encodeURIComponent(tabel) + "?returnFieldsByFieldId=true&pageSize=100" + (offset ? "&offset=" + offset : ""));
     uit.push(...d.records);
     offset = d.offset || "";
   } while (offset);
@@ -188,7 +188,7 @@ async function bewaarReactie(body: any) {
   if (!/^rec[A-Za-z0-9]{14}$/.test(kandidaat)) throw new Error("geen geldige kandidaat");
   if (!wie) throw new Error("vul je naam in");
 
-  const kandRec = await airtable(encodeURIComponent(TB_KANDIDATEN) + "/" + kandidaat);
+  const kandRec = await airtable(encodeURIComponent(TB_KANDIDATEN) + "/" + kandidaat + "?returnFieldsByFieldId=true");
   const kandNaam = kandRec.fields[K.naam] || "kandidaat";
 
   const bestaand = (await alleRecords(TB_REACTIES)).filter(
@@ -246,7 +246,7 @@ export default async (req: Request) => {
     if (actie === "fotos") {
       const id = url.searchParams.get("kandidaat") || "";
       if (!/^rec[A-Za-z0-9]{14}$/.test(id)) return json({ fout: "geen geldige kandidaat" }, 400);
-      const rec = await airtable(encodeURIComponent(TB_KANDIDATEN) + "/" + id);
+      const rec = await airtable(encodeURIComponent(TB_KANDIDATEN) + "/" + id + "?returnFieldsByFieldId=true");
       const map = rec.fields[K.map] || "";
       if (!map) return json({ fotos: [], melding: "Bij deze kandidaat staat geen Dropboxmap." });
       const token = await dropboxToken();
