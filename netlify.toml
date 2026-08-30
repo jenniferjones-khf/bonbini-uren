@@ -37,3 +37,15 @@
   for = "/gegevens.html"
   [headers.values]
     Cache-Control = "no-store"
+
+# De locatiepagina: kandidaten van de scout, de decors uit de locatielijst, en de
+# reacties van de heads. De foto's komen live uit Dropbox via /api/locaties.
+[[redirects]]
+  from = "/locaties"
+  to = "/locaties.html"
+  status = 200
+
+[[headers]]
+  for = "/locaties.html"
+  [headers.values]
+    Cache-Control = "no-store"

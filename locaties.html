@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Locaties — Bon Bini</title>
+<style>
+  :root{
+    --inkt:#12141a; --inkt2:#1c1f28; --lijn:#2b303c; --lijn2:#e3e6ec;
+    --papier:#f6f7f9; --wit:#ffffff; --grijs:#6b7280; --grijs2:#9aa1ad;
+    --groen:#0f7b52; --groen-l:#e6f4ee; --oranje:#a2600d; --oranje-l:#fdf3e3;
+    --paars:#5b2fa8; --paars-l:#efe9fb; --rood:#a4262c;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{background:var(--papier);color:var(--inkt);
+    font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+    padding-bottom:70px}
+  .wrap{max-width:940px;margin:0 auto;padding:0 14px}
+
+  header{background:var(--inkt);color:#fff;padding:18px 0 16px}
+  .prod{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#8c93a3;margin:0 0 6px}
+  h1{font-size:21px;margin:0;font-weight:650;letter-spacing:-.01em}
+  header p{color:#aeb5c2;font-size:13px;margin:6px 0 0;max-width:62ch}
+
+  .balk{background:var(--wit);border-bottom:1px solid var(--lijn2);position:sticky;top:0;z-index:5}
+  .balk .wrap{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding-top:10px;padding-bottom:10px}
+  .knop{border:1px solid var(--lijn2);background:var(--wit);border-radius:8px;padding:7px 12px;
+    font:inherit;font-size:13px;cursor:pointer;color:var(--inkt)}
+  .knop.aan{background:var(--inkt);border-color:var(--inkt);color:#fff}
+  .ikben{margin-left:auto;display:flex;gap:6px;align-items:center;font-size:13px;color:var(--grijs)}
+  .ikben input{border:1px solid var(--lijn2);border-radius:8px;padding:6px 9px;font:inherit;font-size:13px;width:130px}
+
+  main{padding-top:16px}
+  .kaart{background:var(--wit);border:1px solid var(--lijn2);border-radius:12px;margin-bottom:14px;overflow:hidden}
+  .kop{padding:14px 16px;display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
+  .kop h2{font-size:17px;margin:0;font-weight:640}
+  .chip{font-size:11px;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;
+    padding:3px 9px;border:1px solid var(--lijn2);color:var(--grijs);white-space:nowrap}
+  .chip.nl{background:var(--paars-l);border-color:#d9cdf3;color:var(--paars)}
+  .chip.at{background:var(--groen-l);border-color:#c3e4d6;color:var(--groen)}
+  .score{margin-left:auto;text-align:right;font-size:13px;color:var(--grijs)}
+  .score b{display:block;font-size:19px;color:var(--inkt)}
+  .body{padding:0 16px 14px}
+  .voor{font-size:13px;color:var(--grijs);margin:0 0 8px}
+  .voor span{color:var(--inkt)}
+  .notitie{font-size:14px;color:#3b4150;white-space:pre-wrap;margin:0 0 12px}
+
+  .fotos{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;margin-bottom:12px}
+  .fotos img{width:100%;height:105px;object-fit:cover;border-radius:8px;background:var(--lijn2);
+    cursor:zoom-in;display:block;border:1px solid var(--lijn2)}
+  .meer{font-size:13px;color:var(--grijs);margin:0 0 12px}
+
+  .reactie{border-top:1px solid var(--lijn2);padding-top:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start}
+  .sterren{display:flex;gap:2px}
+  .ster{background:none;border:0;font-size:22px;line-height:1;cursor:pointer;color:#d6dae2;padding:0 1px}
+  .ster.aan{color:#e0a80d}
+  .reactie textarea{flex:1;min-width:220px;border:1px solid var(--lijn2);border-radius:8px;padding:8px 10px;
+    font:inherit;font-size:14px;resize:vertical;min-height:38px}
+  .bewaar{background:var(--inkt);color:#fff;border:0;border-radius:8px;padding:9px 14px;font:inherit;
+    font-size:14px;cursor:pointer}
+  .gezegd{font-size:13px;color:var(--grijs);margin:10px 0 0;border-top:1px dashed var(--lijn2);padding-top:10px}
+  .gezegd div{margin-top:4px}
+  .gezegd b{color:var(--inkt)}
+
+  table{width:100%;border-collapse:collapse;background:var(--wit);border:1px solid var(--lijn2);border-radius:12px}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--lijn2);font-size:14px;vertical-align:top}
+  th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--grijs);font-weight:600}
+  tr:last-child td{border-bottom:0}
+  td.num{text-align:right;font-variant-numeric:tabular-nums}
+  .groepkop td{background:#f0f2f6;font-weight:650}
+
+  .melding{background:var(--oranje-l);border:1px solid #f0dcb8;color:var(--oranje);
+    border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:14px}
+  .laden{color:var(--grijs);font-size:14px;padding:20px 0}
+
+  dialog{border:0;border-radius:12px;padding:0;background:#000;max-width:96vw;max-height:96vh}
+  dialog img{max-width:96vw;max-height:90vh;display:block}
+  dialog form{position:absolute;top:8px;right:8px}
+  dialog button{background:rgba(0,0,0,.6);color:#fff;border:0;border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <p class="prod">Bon Bini — Jetzt Geht's Los</p>
+    <h1>Locaties</h1>
+    <p>Wat de scout heeft aangedragen, naast wat het script vraagt. Geef per locatie een cijfer en zeg wat je ervan vindt, dan zien we in één oogopslag waar we op uitkomen.</p>
+  </div>
+</header>
+
+<div class="balk">
+  <div class="wrap">
+    <button class="knop aan" data-tab="kandidaten">Locaties van de scout</button>
+    <button class="knop" data-tab="decors">Wat het script vraagt</button>
+    <button class="knop" data-blok="alles">Alles</button>
+    <button class="knop" data-blok="Nederland">Nederland</button>
+    <button class="knop" data-blok="Oostenrijk">Oostenrijk</button>
+    <span class="ikben">
+      Ik ben <input id="wie" placeholder="je naam" autocomplete="name">
+      <input id="afdeling" placeholder="afdeling">
+    </span>
+  </div>
+</div>
+
+<main class="wrap">
+  <div id="melding"></div>
+  <div id="inhoud" class="laden">Bezig met laden…</div>
+</main>
+
+<dialog id="groot"><form method="dialog"><button>Sluiten</button></form><img alt=""></dialog>
+
+<script>
+const code = new URLSearchParams(location.search).get("k") || "";
+const api = (q) => "/api/locaties?k=" + encodeURIComponent(code) + "&" + q;
+let data = null, tab = "kandidaten", blok = "alles";
+const fotocache = {};
+
+const wieVeld = document.getElementById("wie");
+const afdVeld = document.getElementById("afdeling");
+try {
+  wieVeld.value = localStorage.getItem("bb_wie") || "";
+  afdVeld.value = localStorage.getItem("bb_afdeling") || "";
+} catch (e) {}
+wieVeld.addEventListener("input", () => { try { localStorage.setItem("bb_wie", wieVeld.value); } catch (e) {} });
+afdVeld.addEventListener("input", () => { try { localStorage.setItem("bb_afdeling", afdVeld.value); } catch (e) {} });
+
+document.querySelectorAll("[data-tab]").forEach((b) => b.addEventListener("click", () => {
+  tab = b.dataset.tab;
+  document.querySelectorAll("[data-tab]").forEach((x) => x.classList.toggle("aan", x === b));
+  teken();
+}));
+document.querySelectorAll("[data-blok]").forEach((b) => b.addEventListener("click", () => {
+  blok = b.dataset.blok;
+  document.querySelectorAll("[data-blok]").forEach((x) => x.classList.toggle("aan", x === b));
+  teken();
+}));
+
+function ontsnap(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+async function haal() {
+  try {
+    const r = await fetch(api("actie=lijst"));
+    const d = await r.json();
+    if (d.fout) throw new Error(d.fout);
+    data = d;
+    teken();
+  } catch (e) {
+    document.getElementById("inhoud").innerHTML =
+      '<div class="melding">Kan de locaties niet ophalen: ' + ontsnap(e.message) + "</div>";
+  }
+}
+
+function decorNamen(ids) {
+  return ids.map((id) => (data.decors.find((d) => d.id === id) || {}).decor).filter(Boolean);
+}
+
+function reactiesVan(kandidaatId) {
+  return data.reacties.filter((r) => r.kandidaat === kandidaatId);
+}
+
+function teken() {
+  const el = document.getElementById("inhoud");
+  el.className = "";
+  el.innerHTML = tab === "kandidaten" ? tekenKandidaten() : tekenDecors();
+  if (tab === "kandidaten") {
+    document.querySelectorAll(".kaart[data-kandidaat]").forEach((kaart) => laadFotos(kaart));
+    knoppen();
+  }
+}
+
+function tekenKandidaten() {
+  const lijst = data.kandidaten.filter((k) => blok === "alles" || k.blok === blok);
+  if (!lijst.length) return '<div class="melding">Geen locaties in dit blok.</div>';
+  const mijn = (wieVeld.value || "").toLowerCase();
+
+  return lijst.map((k) => {
+    const rs = reactiesVan(k.id);
+    const cijfers = rs.filter((r) => r.cijfer > 0).map((r) => r.cijfer);
+    const gem = cijfers.length ? (cijfers.reduce((a, b) => a + b, 0) / cijfers.length).toFixed(1) : "—";
+    const eigen = rs.filter((r) => (r.wie || "").toLowerCase() === mijn)[0] || { cijfer: 0, opmerking: "" };
+    const voor = decorNamen(k.decors);
+
+    return '<section class="kaart" data-kandidaat="' + k.id + '">' +
+      '<div class="kop">' +
+        "<h2>" + ontsnap(k.naam) + "</h2>" +
+        '<span class="chip ' + (k.blok === "Nederland" ? "nl" : "at") + '">' + ontsnap(k.blok) + "</span>" +
+        '<span class="chip">' + ontsnap(k.status) + "</span>" +
+        '<span class="score"><b>' + gem + "</b>" + cijfers.length + " reactie" + (cijfers.length === 1 ? "" : "s") + "</span>" +
+      "</div>" +
+      '<div class="body">' +
+        (voor.length
+          ? '<p class="voor">Voorgesteld voor: <span>' + voor.map(ontsnap).join(", ") + "</span></p>"
+          : '<p class="voor">Nog niet gekoppeld aan een decor.</p>') +
+        (k.adres ? '<p class="voor">Adres: <span>' + ontsnap(k.adres) + "</span></p>" : "") +
+        (k.notities ? '<p class="notitie">' + ontsnap(k.notities) + "</p>" : "") +
+        '<div class="fotos"></div>' +
+        '<div class="reactie">' +
+          '<div class="sterren" data-voor="' + k.id + '">' +
+            [1, 2, 3, 4, 5].map((n) =>
+              '<button class="ster' + (n <= eigen.cijfer ? " aan" : "") + '" data-cijfer="' + n + '">&#9733;</button>').join("") +
+          "</div>" +
+          '<textarea placeholder="Wat vind je ervan?">' + ontsnap(eigen.opmerking) + "</textarea>" +
+          '<button class="bewaar">Bewaren</button>' +
+        "</div>" +
+        (rs.length ? '<div class="gezegd">' + rs.map((r) =>
+          "<div><b>" + ontsnap(r.wie) + (r.afdeling ? " (" + ontsnap(r.afdeling) + ")" : "") + "</b> " +
+          (r.cijfer ? "&#9733;".repeat(r.cijfer) + " " : "") + ontsnap(r.opmerking) + "</div>").join("") + "</div>" : "") +
+      "</div>" +
+    "</section>";
+  }).join("");
+}
+
+function tekenDecors() {
+  const lijst = data.decors.filter((d) => {
+    if (blok === "alles") return true;
+    if (blok === "Nederland") return d.draaitIn === "NL" || d.draaitIn === "NL/AT";
+    return d.draaitIn === "AT" || d.draaitIn === "NL/AT";
+  });
+  let uit = "<table><tr><th>Decor</th><th>INT/EXT</th><th>Scenes</th><th>Draait in</th><th>Status</th><th>Kandidaten</th></tr>";
+  let vorig = "";
+  lijst.forEach((d) => {
+    if (d.hoofd !== vorig) {
+      uit += '<tr class="groepkop"><td colspan="6">' + ontsnap(d.hoofd) + "</td></tr>";
+      vorig = d.hoofd;
+    }
+    const kand = data.kandidaten.filter((k) => k.decors.indexOf(d.id) > -1).map((k) => k.naam);
+    uit += "<tr><td>" + ontsnap(d.decor) + "</td><td>" + ontsnap(d.intext) + '</td><td class="num">' +
+      d.scenes + "</td><td>" + ontsnap(d.draaitIn) + "</td><td>" + ontsnap(d.status) + "</td><td>" +
+      (kand.length ? kand.map(ontsnap).join(", ") : "—") + "</td></tr>";
+  });
+  return uit + "</table>";
+}
+
+async function laadFotos(kaart) {
+  const id = kaart.dataset.kandidaat;
+  const vak = kaart.querySelector(".fotos");
+  try {
+    if (!fotocache[id]) {
+      const r = await fetch(api("actie=fotos&kandidaat=" + id));
+      const d = await r.json();
+      fotocache[id] = d.fotos || [];
+    }
+    const fotos = fotocache[id];
+    if (!fotos.length) { vak.outerHTML = '<p class="meer">Nog geen foto\'s in de map van deze locatie.</p>'; return; }
+    const toon = fotos.slice(0, 12);
+    vak.innerHTML = toon.map((f) =>
+      '<img loading="lazy" alt="" src="' + api("actie=foto&pad=" + encodeURIComponent(f.pad)) +
+      '" data-groot="' + api("actie=groot&pad=" + encodeURIComponent(f.pad)) + '">').join("");
+    if (fotos.length > toon.length) {
+      vak.insertAdjacentHTML("afterend", '<p class="meer">' + (fotos.length - toon.length) +
+        " foto's meer in de Dropbox-map.</p>");
+    }
+    vak.querySelectorAll("img").forEach((img) => img.addEventListener("click", () => {
+      const dlg = document.getElementById("groot");
+      dlg.querySelector("img").src = img.dataset.groot;
+      dlg.showModal();
+    }));
+  } catch (e) {
+    vak.outerHTML = '<p class="meer">Foto\'s niet gelukt: ' + ontsnap(e.message) + "</p>";
+  }
+}
+
+function knoppen() {
+  document.querySelectorAll(".sterren").forEach((rij) => {
+    rij.querySelectorAll(".ster").forEach((b) => b.addEventListener("click", () => {
+      const n = Number(b.dataset.cijfer);
+      rij.querySelectorAll(".ster").forEach((x) => x.classList.toggle("aan", Number(x.dataset.cijfer) <= n));
+      rij.dataset.gekozen = String(n);
+    }));
+  });
+
+  document.querySelectorAll(".bewaar").forEach((knop) => knop.addEventListener("click", async () => {
+    const kaart = knop.closest(".kaart");
+    const rij = kaart.querySelector(".sterren");
+    const wie = wieVeld.value.trim();
+    if (!wie) { toon("Vul eerst je naam in, rechtsboven."); return; }
+    knop.disabled = true; knop.textContent = "Bezig…";
+    try {
+      const r = await fetch(api("actie=reactie"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          kandidaat: kaart.dataset.kandidaat,
+          wie,
+          afdeling: afdVeld.value.trim(),
+          cijfer: Number(rij.dataset.gekozen || rij.querySelectorAll(".ster.aan").length),
+          opmerking: kaart.querySelector("textarea").value,
+        }),
+      });
+      const d = await r.json();
+      if (d.fout) throw new Error(d.fout);
+      await haal();
+      toon("Bewaard, dank je.");
+    } catch (e) {
+      toon("Niet gelukt: " + e.message);
+    } finally {
+      knop.disabled = false; knop.textContent = "Bewaren";
+    }
+  }));
+}
+
+function toon(tekst) {
+  const m = document.getElementById("melding");
+  m.innerHTML = '<div class="melding">' + ontsnap(tekst) + "</div>";
+  setTimeout(() => { m.innerHTML = ""; }, 4000);
+}
+
+if (!code) {
+  document.getElementById("inhoud").innerHTML =
+    '<div class="melding">Deze pagina werkt alleen met de volledige link die je van productie hebt gekregen.</div>';
+} else {
+  haal();
+}
+</script>
+</body>
+</html>
