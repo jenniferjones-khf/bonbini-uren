@@ -1,207 +1,191 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="nl" data-stijl="a">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Locaties — Bon Bini</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
+  /* ============ drie stijlen, dezelfde pagina ============ */
   :root{
-    --nacht:#0B0C0F; --paneel:#14161B; --paneel2:#191C22; --lijn:#252932; --lijn2:#333846;
-    --room:#EDEAE4; --zacht:#8D93A0; --zacht2:#5F6572;
-    --goud:#F2B41E; --amber:#F2B41E; --rood:#D8342C;
-    --nl:#7FC4F0; --nl-b:rgba(127,196,240,.16);
-    --at:#8ED8C8; --at-b:rgba(142,216,200,.16);
     --display:"Bricolage Grotesque","Public Sans",system-ui,sans-serif;
     --body:"Public Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
     --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --ja:#1F8A54; --ja-b:rgba(31,138,84,.12);
+    --mis:#B07A0B; --mis-b:rgba(176,122,11,.14);
+    --nee:#B3382F; --nee-b:rgba(179,56,47,.12);
   }
+  /* A - contactvel: papier, fijne lijnen, zakelijk en dicht op elkaar */
+  [data-stijl="a"]{
+    --grond:#EFEFEC; --vlak:#FFFFFF; --vlak2:#F6F6F3; --lijn:#DBDBD4; --lijn2:#C8C8C0;
+    --tekst:#191A18; --zacht:#6C6E68; --zacht2:#93958D; --accent:#191A18; --accentTekst:#FFFFFF;
+    --kopFont:var(--body); --kopGewicht:700; --kopMaat:clamp(30px,4vw,44px); --kopKleur:#191A18;
+    --kopTransform:none; --kopSpatie:-.02em; --schaduw:0 1px 2px rgba(0,0,0,.04);
+    --radius:8px; --duim:96px;
+  }
+  /* B - nacht: donker, goud, de foto's springen eruit */
+  [data-stijl="b"]{
+    --grond:#0B0C0F; --vlak:#14161B; --vlak2:#191C22; --lijn:#252932; --lijn2:#333846;
+    --tekst:#EDEAE4; --zacht:#8D93A0; --zacht2:#5F6572; --accent:#F2B41E; --accentTekst:#231A05;
+    --kopFont:var(--display); --kopGewicht:800; --kopMaat:clamp(38px,6vw,66px); --kopKleur:#F2B41E;
+    --kopTransform:uppercase; --kopSpatie:-.04em; --schaduw:none;
+    --radius:14px; --duim:104px;
+    --ja:#4FBF85; --ja-b:rgba(79,191,133,.16);
+    --mis:#E5B23F; --mis-b:rgba(229,178,63,.16);
+    --nee:#E0655A; --nee-b:rgba(224,101,90,.16);
+  }
+  /* C - poster: warm karton met het goud en rood van de reeks */
+  [data-stijl="c"]{
+    --grond:#F3EADA; --vlak:#FFFBF3; --vlak2:#F7EFE1; --lijn:#DFCFB4; --lijn2:#C9B695;
+    --tekst:#231A0E; --zacht:#7A6851; --zacht2:#A08D73; --accent:#D8342C; --accentTekst:#FFFBF3;
+    --kopFont:var(--display); --kopGewicht:800; --kopMaat:clamp(38px,6vw,68px); --kopKleur:#D8342C;
+    --kopTransform:uppercase; --kopSpatie:-.035em; --schaduw:0 2px 0 rgba(201,182,149,.5);
+    --radius:12px; --duim:100px;
+  }
+
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0}
-  body{background:var(--nacht);color:var(--room);font:16px/1.55 var(--body);
-    padding-bottom:80px;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:1240px;margin:0 auto;padding:0 24px}
+  body{background:var(--grond);color:var(--tekst);font:15px/1.5 var(--body);padding-bottom:70px;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:1320px;margin:0 auto;padding:0 22px}
   a{color:inherit}
 
-  /* ---------- hero ---------- */
-  .hero{position:relative;overflow:hidden;border-bottom:1px solid var(--lijn);
-    background:var(--nacht)}
-  .hero::before{content:"";position:absolute;inset:-40% -10% auto -10%;height:560px;
-    background:radial-gradient(58% 70% at 18% 0%, rgba(242,180,30,.20), transparent 70%),
-               radial-gradient(50% 60% at 78% 6%, rgba(216,52,44,.16), transparent 70%),
-               radial-gradient(45% 55% at 50% 30%, rgba(127,196,240,.10), transparent 72%);
-    filter:blur(12px);pointer-events:none}
-  .hero .wrap{position:relative;padding-top:52px;padding-bottom:38px}
-  .oog{font:500 11px/1 var(--mono);letter-spacing:.24em;text-transform:uppercase;color:var(--rood);margin:0 0 18px}
-  h1{font-family:var(--display);font-weight:800;font-size:clamp(42px,7.6vw,84px);line-height:.9;
-    letter-spacing:-.04em;margin:0;text-wrap:balance;text-transform:uppercase;color:var(--goud);
-    text-shadow:0 2px 0 rgba(216,52,44,.55), 0 14px 40px rgba(242,180,30,.16)}
-  h1 em{font-style:normal;display:block;color:var(--room);font-size:.42em;letter-spacing:-.02em;
-    text-transform:none;text-shadow:none;margin-top:14px;font-weight:500}
-  .intro{color:var(--zacht);font-size:16px;margin:18px 0 0;max-width:56ch}
+  header{border-bottom:1px solid var(--lijn);padding:34px 0 22px;background:var(--vlak)}
+  [data-stijl="b"] header{background:var(--grond)}
+  .oog{font:500 10.5px/1 var(--mono);letter-spacing:.22em;text-transform:uppercase;color:var(--zacht2);margin:0 0 12px}
+  h1{font-family:var(--kopFont);font-weight:var(--kopGewicht);font-size:var(--kopMaat);line-height:.98;
+    letter-spacing:var(--kopSpatie);text-transform:var(--kopTransform);color:var(--kopKleur);margin:0}
+  .doel{color:var(--zacht);font-size:14.5px;margin:12px 0 0;max-width:70ch}
+  .doel b{color:var(--tekst);font-weight:600}
+  .telling{display:flex;gap:30px;flex-wrap:wrap;margin-top:20px;padding-top:16px;border-top:1px solid var(--lijn)}
+  .telling b{font-family:var(--kopFont);font-weight:var(--kopGewicht);font-size:24px;line-height:1;
+    font-variant-numeric:tabular-nums;display:block}
+  .telling span{font:400 10px/1.3 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--zacht2);
+    display:block;margin-top:6px}
 
-  .cijfers{display:flex;gap:44px;flex-wrap:wrap;margin-top:34px;padding-top:24px;border-top:1px solid var(--lijn)}
-  .cijfers div{min-width:78px}
-  .cijfers b{display:block;font-family:var(--display);font-weight:700;font-size:34px;line-height:1;color:var(--goud);
-    letter-spacing:-.03em;font-variant-numeric:tabular-nums}
-  .cijfers span{font:400 11px/1.4 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--zacht2);
-    display:block;margin-top:8px}
+  .balk{position:sticky;top:0;z-index:20;background:var(--grond);border-bottom:1px solid var(--lijn)}
+  .balk .wrap{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:10px 22px}
+  .pillen{display:flex;gap:2px;background:var(--vlak);border:1px solid var(--lijn);border-radius:999px;padding:3px}
+  .pil{border:0;background:none;border-radius:999px;padding:6px 13px;cursor:pointer;color:var(--zacht);
+    font:500 12.5px var(--body);white-space:nowrap}
+  .pil.aan{background:var(--accent);color:var(--accentTekst)}
+  .ikben{margin-left:auto;display:flex;gap:6px;align-items:center;font:400 10px var(--mono);
+    letter-spacing:.12em;text-transform:uppercase;color:var(--zacht2)}
+  .ikben input{border:1px solid var(--lijn);border-radius:999px;padding:7px 12px;background:var(--vlak);
+    color:var(--tekst);font:400 12.5px var(--body);width:124px;text-transform:none;letter-spacing:0}
+  .ikben input:focus{outline:0;border-color:var(--accent)}
+  .stijlkiezer{font:400 10px var(--mono);letter-spacing:.1em;color:var(--zacht2);display:flex;gap:6px;align-items:center}
+  .stijlkiezer a{padding:4px 8px;border:1px solid var(--lijn);border-radius:6px;text-decoration:none}
+  .stijlkiezer a.aan{background:var(--accent);color:var(--accentTekst);border-color:var(--accent)}
 
-  /* ---------- balk ---------- */
-  .balk{position:sticky;top:0;z-index:20;background:rgba(11,12,15,.82);backdrop-filter:saturate(150%) blur(14px);
-    border-bottom:1px solid var(--lijn)}
-  .balk .wrap{display:flex;gap:14px;flex-wrap:wrap;align-items:center;padding-top:12px;padding-bottom:12px}
-  .pillen{display:flex;gap:3px;background:var(--paneel);border:1px solid var(--lijn);border-radius:999px;padding:3px}
-  .pil{border:0;background:none;border-radius:999px;padding:7px 15px;cursor:pointer;color:var(--zacht);
-    font:500 13px var(--body);white-space:nowrap;transition:color .15s,background .15s}
-  .pil:hover{color:var(--room)}
-  .pil.aan{background:var(--room);color:var(--nacht)}
-  .ikben{margin-left:auto;display:flex;gap:7px;align-items:center;
-    font:400 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--zacht2)}
-  .ikben input{border:1px solid var(--lijn);border-radius:999px;padding:8px 14px;background:var(--paneel);
-    color:var(--room);font:400 13px var(--body);width:132px;text-transform:none;letter-spacing:0}
-  .ikben input::placeholder{color:var(--zacht2)}
-  .ikben input:focus{outline:0;border-color:var(--amber)}
-
-  /* ---------- raster ---------- */
-  main{padding-top:34px}
-  .sectie{font:500 11px/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--zacht2);
-    margin:38px 0 16px;display:flex;align-items:center;gap:14px}
+  main{padding-top:22px}
+  .sectie{font:500 10.5px/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--zacht2);
+    margin:26px 0 12px;display:flex;align-items:center;gap:12px}
   .sectie:first-child{margin-top:0}
   .sectie::after{content:"";flex:1;height:1px;background:var(--lijn)}
-  .raster{display:grid;gap:22px;grid-template-columns:repeat(auto-fill,minmax(400px,1fr))}
 
-  .kaart{background:var(--paneel);border:1px solid var(--lijn);border-radius:18px;overflow:hidden;
-    display:flex;flex-direction:column;opacity:0;transform:translateY(14px);
-    animation:opkomen .5s cubic-bezier(.2,.7,.3,1) forwards}
-  @keyframes opkomen{to{opacity:1;transform:none}}
-  @media (prefers-reduced-motion:reduce){.kaart{animation:none;opacity:1;transform:none}}
+  .vel{background:var(--vlak);border:1px solid var(--lijn);border-radius:var(--radius);margin-bottom:14px;
+    box-shadow:var(--schaduw);overflow:hidden}
+  .velkop{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;padding:14px 16px 10px}
+  .velkop h2{font-family:var(--kopFont);font-weight:var(--kopGewicht);font-size:18px;margin:0;letter-spacing:-.01em}
+  .merk{font:500 9.5px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;padding:5px 9px;
+    border-radius:999px;border:1px solid var(--lijn2);color:var(--zacht)}
+  .telstrook{margin-left:auto;display:flex;gap:6px;font:500 10px var(--mono);letter-spacing:.06em}
+  .telstrook span{padding:5px 9px;border-radius:999px;border:1px solid var(--lijn)}
+  .telstrook .j{color:var(--ja);background:var(--ja-b);border-color:transparent}
+  .telstrook .t{color:var(--mis);background:var(--mis-b);border-color:transparent}
+  .telstrook .n{color:var(--nee);background:var(--nee-b);border-color:transparent}
 
-  .beeld{position:relative;aspect-ratio:3/2;background:var(--paneel2);overflow:hidden;display:block}
-  .beeld img{width:100%;height:100%;object-fit:cover;display:block;
-    transition:transform .6s cubic-bezier(.2,.7,.3,1);cursor:zoom-in}
-  .kaart:hover .beeld img{transform:scale(1.035)}
-  .beeld::after{content:"";position:absolute;inset:0;pointer-events:none;
-    background:linear-gradient(to top,rgba(11,12,15,.92) 0%,rgba(11,12,15,.45) 34%,transparent 62%)}
-  .leegbeeld{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-    color:var(--zacht2);font:400 12px var(--mono);letter-spacing:.08em;text-align:center;padding:20px;
-    background:repeating-linear-gradient(135deg,#15181E,#15181E 14px,#181B22 14px,#181B22 28px)}
-
-  .opbeeld{position:absolute;left:0;right:0;bottom:0;padding:18px 20px;z-index:2;display:flex;
-    align-items:flex-end;gap:12px}
-  .opbeeld h2{font-family:var(--display);font-weight:700;font-size:23px;line-height:1.1;
-    letter-spacing:-.02em;margin:0;flex:1;text-shadow:0 1px 14px rgba(0,0,0,.5)}
-  .cijfer{flex:0 0 auto;width:54px;height:54px;border-radius:50%;display:flex;flex-direction:column;
-    align-items:center;justify-content:center;background:rgba(11,12,15,.72);border:1px solid var(--lijn2);
-    backdrop-filter:blur(6px)}
-  .cijfer b{font-family:var(--display);font-weight:700;font-size:19px;line-height:1;color:var(--goud);
-    font-variant-numeric:tabular-nums}
-  .cijfer span{font:400 8.5px/1 var(--mono);color:var(--zacht2);margin-top:3px;letter-spacing:.06em}
-  .cijfer.leeg b{color:var(--zacht2);font-size:15px}
-
-  .merken{position:absolute;top:14px;left:14px;z-index:2;display:flex;gap:6px;flex-wrap:wrap}
-  .merk{font:500 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;padding:6px 10px;
-    border-radius:999px;background:rgba(11,12,15,.66);border:1px solid var(--lijn2);color:var(--zacht);
-    backdrop-filter:blur(6px)}
-  .merk.nl{color:var(--nl);border-color:rgba(143,182,255,.3);background:var(--nl-b)}
-  .merk.at{color:var(--at);border-color:rgba(126,211,168,.3);background:var(--at-b)}
-
-  .lijf{padding:18px 20px 20px;display:flex;flex-direction:column;gap:14px;flex:1}
-  .voor{font:400 12px var(--mono);letter-spacing:.02em;color:var(--zacht2);margin:0;line-height:1.6}
+  .velmeta{padding:0 16px 12px;display:flex;flex-direction:column;gap:5px}
+  .voor{font:400 11.5px var(--mono);color:var(--zacht2);margin:0;line-height:1.6}
   .voor b{color:var(--zacht);font-weight:400}
-  .tekst{margin:0;font-size:14.5px;color:#C6C9D0;white-space:pre-wrap;line-height:1.6}
-  .extern{align-self:flex-start;font:600 12px var(--body);color:var(--nacht);background:var(--goud);
-    text-decoration:none;padding:8px 14px;border-radius:999px}
+  .tekst{margin:0;font-size:14px;color:var(--zacht);line-height:1.55;max-width:80ch}
+  .extern{align-self:flex-start;margin-top:4px;font:600 12px var(--body);background:var(--accent);
+    color:var(--accentTekst);text-decoration:none;padding:7px 13px;border-radius:999px}
 
-  .strip{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin:0 -2px;scrollbar-width:thin;
-    scrollbar-color:var(--lijn2) transparent}
-  .strip::-webkit-scrollbar{height:6px}
-  .strip::-webkit-scrollbar-thumb{background:var(--lijn2);border-radius:99px}
-  .strip img{width:96px;height:66px;flex:0 0 auto;object-fit:cover;border-radius:8px;background:var(--paneel2);
-    cursor:zoom-in;opacity:.82;transition:opacity .2s,transform .2s}
-  .strip img:hover{opacity:1;transform:translateY(-2px)}
-  .strip .rest{width:96px;height:66px;flex:0 0 auto;border-radius:8px;border:1px dashed var(--lijn2);
-    display:flex;align-items:center;justify-content:center;font:400 10px var(--mono);color:var(--zacht2);
-    text-align:center;padding:6px;line-height:1.4}
+  .vel-fotos{display:grid;gap:3px;grid-template-columns:repeat(auto-fill,minmax(var(--duim),1fr));
+    padding:0 16px 14px}
+  .vel-fotos img{width:100%;aspect-ratio:4/3;object-fit:cover;background:var(--vlak2);cursor:zoom-in;
+    display:block;border-radius:3px;transition:opacity .15s}
+  .vel-fotos img:hover{opacity:.82}
+  .geenfoto{padding:0 16px 14px;font:400 12px var(--mono);color:var(--zacht2);letter-spacing:.06em}
 
-  .stem{border-top:1px solid var(--lijn);padding-top:14px;margin-top:auto;
-    display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-  .sterren{display:flex;gap:2px}
-  .ster{background:none;border:0;font-size:23px;line-height:1;cursor:pointer;color:#2E333D;padding:0;
-    transition:color .12s,transform .12s}
-  .ster.aan{color:var(--goud)}
-  .sterren:hover .ster{color:#3A404C}
-  .sterren .ster:hover,.sterren .ster:hover ~ .ster{color:#3A404C}
-  .sterren:hover .ster.aan{color:var(--goud)}
-  .stem textarea{flex:1;min-width:180px;border:1px solid var(--lijn);border-radius:12px;padding:10px 13px;
-    background:var(--paneel2);color:var(--room);font:400 14px var(--body);resize:vertical;min-height:42px}
-  .stem textarea::placeholder{color:var(--zacht2)}
-  .stem textarea:focus{outline:0;border-color:var(--amber)}
-  .bewaar{background:var(--goud);color:#231A05;border:0;border-radius:999px;padding:10px 18px;
-    font:600 13px var(--body);cursor:pointer;transition:opacity .15s}
-  .bewaar:hover{opacity:.85}
-  .bewaar:disabled{opacity:.4;cursor:default}
+  .oordeel{border-top:1px solid var(--lijn);background:var(--vlak2);padding:12px 16px;
+    display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .keuzes{display:flex;gap:6px}
+  .keuze{border:1px solid var(--lijn2);background:var(--vlak);color:var(--zacht);border-radius:999px;
+    padding:8px 14px;font:600 12.5px var(--body);cursor:pointer;white-space:nowrap}
+  .keuze:hover{border-color:var(--zacht2)}
+  .keuze[data-w="Langs gaan"].aan{background:var(--ja);border-color:var(--ja);color:#fff}
+  .keuze[data-w="Twijfel"].aan{background:var(--mis);border-color:var(--mis);color:#fff}
+  .keuze[data-w="Niet nodig"].aan{background:var(--nee);border-color:var(--nee);color:#fff}
+  .oordeel textarea{flex:1;min-width:200px;border:1px solid var(--lijn);border-radius:10px;padding:9px 12px;
+    background:var(--vlak);color:var(--tekst);font:400 13.5px var(--body);resize:vertical;min-height:40px}
+  .oordeel textarea:focus{outline:0;border-color:var(--accent)}
+  .bewaar{background:var(--accent);color:var(--accentTekst);border:0;border-radius:999px;padding:9px 16px;
+    font:600 12.5px var(--body);cursor:pointer}
+  .bewaar:disabled{opacity:.45}
 
-  .gezegd{display:flex;flex-direction:column;gap:8px}
-  .zei{background:var(--paneel2);border-radius:12px;padding:11px 14px;font-size:14px;color:#C6C9D0;line-height:1.55}
-  .zei b{color:var(--room);font-weight:600}
-  .zei .st{color:var(--goud);letter-spacing:1px;font-size:12px}
-  .zei .wie{display:flex;gap:8px;align-items:baseline;margin-bottom:2px}
+  .gezegd{padding:10px 16px 14px;display:flex;flex-wrap:wrap;gap:8px;border-top:1px solid var(--lijn)}
+  .zei{background:var(--vlak2);border:1px solid var(--lijn);border-radius:999px;padding:6px 12px;font-size:13px;
+    color:var(--zacht);max-width:100%}
+  .zei b{color:var(--tekst);font-weight:600}
+  .zei i{font-style:normal;font-weight:600}
+  .zei i.j{color:var(--ja)} .zei i.t{color:var(--mis)} .zei i.n{color:var(--nee)}
 
-  /* ---------- tabel ---------- */
-  .tabelwrap{overflow-x:auto;border:1px solid var(--lijn);border-radius:16px;background:var(--paneel)}
-  table{width:100%;border-collapse:collapse;min-width:760px}
-  th,td{text-align:left;padding:13px 18px;border-bottom:1px solid var(--lijn);font-size:14px;vertical-align:top}
-  th{font:500 10px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--zacht2);
-    background:var(--paneel2);position:sticky;top:0}
+  .tabelwrap{overflow-x:auto;border:1px solid var(--lijn);border-radius:var(--radius);background:var(--vlak)}
+  table{width:100%;border-collapse:collapse;min-width:820px}
+  th,td{text-align:left;padding:11px 16px;border-bottom:1px solid var(--lijn);font-size:13.5px;vertical-align:top}
+  th{font:500 9.5px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--zacht2);
+    background:var(--vlak2)}
   tr:last-child td{border-bottom:0}
-  td.num{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono);font-size:13px}
+  td.num{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono);font-size:12.5px}
   td.stil{color:var(--zacht2)}
-  .groepkop td{background:#1B1F27;font-family:var(--display);font-weight:700;font-size:14px;letter-spacing:-.01em}
+  .groepkop td{background:var(--vlak2);font-family:var(--kopFont);font-weight:var(--kopGewicht);font-size:13.5px}
 
-  .melding{background:rgba(233,162,59,.1);border:1px solid rgba(233,162,59,.3);color:var(--amber);
-    border-radius:14px;padding:13px 18px;margin-bottom:18px;font-size:14px}
-  .laden{color:var(--zacht2);font:400 13px var(--mono);letter-spacing:.1em;padding:40px 0;text-transform:uppercase}
+  .melding{background:var(--vlak);border:1px solid var(--accent);color:var(--tekst);border-radius:10px;
+    padding:11px 16px;margin-bottom:14px;font-size:13.5px}
+  .laden{color:var(--zacht2);font:400 12px var(--mono);letter-spacing:.1em;padding:34px 0;text-transform:uppercase}
 
-  dialog{border:0;border-radius:16px;padding:0;background:#000;max-width:96vw;max-height:96vh;overflow:hidden}
-  dialog::backdrop{background:rgba(6,7,9,.9);backdrop-filter:blur(4px)}
+  dialog{border:0;border-radius:10px;padding:0;background:#000;max-width:96vw;max-height:96vh}
+  dialog::backdrop{background:rgba(0,0,0,.86)}
   dialog img{max-width:96vw;max-height:90vh;display:block}
-  dialog form{position:absolute;top:12px;right:12px}
-  dialog button{background:rgba(11,12,15,.7);color:var(--room);border:1px solid var(--lijn2);border-radius:999px;
-    padding:8px 16px;cursor:pointer;font:500 12px var(--body);backdrop-filter:blur(6px)}
+  dialog form{position:absolute;top:10px;right:10px}
+  dialog button{background:rgba(0,0,0,.6);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:999px;
+    padding:7px 14px;cursor:pointer;font:500 12px var(--body)}
 
-  @media (max-width:760px){
-    .wrap{padding:0 16px}
-    .raster{grid-template-columns:1fr}
-    .cijfers{gap:26px}
+  @media (max-width:720px){
+    .wrap{padding:0 14px}
     .ikben{margin-left:0;width:100%}
     .ikben input{flex:1;width:auto}
+    .telstrook{margin-left:0;width:100%}
   }
 </style>
 </head>
 <body>
 
-<div class="hero">
+<header>
   <div class="wrap">
-    <p class="oog">Bon Bini 6 · Jetzt Geht's Los</p>
-    <h1>Locaties<em>Waar draaien we dit?</em></h1>
-    <p class="intro">Alles wat de scout heeft aangedragen, naast wat het script vraagt. Geef een cijfer, zeg wat je ervan vindt, en we zien meteen waar we op uitkomen.</p>
-    <div class="cijfers" id="cijfers"></div>
+    <p class="oog">Bon Bini 6 &middot; Jetzt Geht's Los</p>
+    <h1>Locaties</h1>
+    <p class="doel">Scoutfoto's van mogelijke locaties. We kijken hier met het hele team naar om te bepalen <b>of een artistiek locatiebezoek nodig is</b>. Sommige panden worden nog volledig door art verbouwd, andere niet. Zeg per locatie of we langs moeten.</p>
+    <div class="telling" id="telling"></div>
   </div>
-</div>
+</header>
 
 <div class="balk">
   <div class="wrap">
     <div class="pillen">
-      <button class="pil aan" data-tab="kandidaten">Van de scout</button>
-      <button class="pil" data-tab="decors">Wat het script vraagt</button>
+      <button class="pil aan" data-tab="kandidaten">Scoutfoto's</button>
+      <button class="pil" data-tab="decors">Locatielijst uit het script</button>
     </div>
     <div class="pillen">
       <button class="pil aan" data-blok="alles">Alles</button>
       <button class="pil" data-blok="Nederland">Nederland</button>
       <button class="pil" data-blok="Oostenrijk">Oostenrijk</button>
     </div>
+    <span class="stijlkiezer" id="stijlkiezer">Stijl</span>
     <span class="ikben">
       Ik ben <input id="wie" placeholder="je naam" autocomplete="name">
       <input id="afdeling" placeholder="afdeling">
@@ -211,16 +195,26 @@
 
 <main class="wrap">
   <div id="melding"></div>
-  <div id="inhoud" class="laden">Bezig met laden…</div>
+  <div id="inhoud" class="laden">Bezig met laden&hellip;</div>
 </main>
 
 <dialog id="groot"><form method="dialog"><button>Sluiten</button></form><img alt=""></dialog>
 
 <script>
-const code = new URLSearchParams(location.search).get("k") || "";
+const params = new URLSearchParams(location.search);
+const code = params.get("k") || "";
 const api = (q) => "/api/locaties?k=" + encodeURIComponent(code) + "&" + q;
 let data = null, tab = "kandidaten", blok = "alles";
 const fotocache = {};
+
+const gekozenStijl = (params.get("stijl") || "a").toLowerCase();
+document.documentElement.dataset.stijl = ["a", "b", "c"].indexOf(gekozenStijl) > -1 ? gekozenStijl : "a";
+document.getElementById("stijlkiezer").insertAdjacentHTML("beforeend",
+  ["a", "b", "c"].map((s) => {
+    const p = new URLSearchParams(location.search); p.set("stijl", s);
+    return '<a href="?' + p.toString() + '"' + (s === document.documentElement.dataset.stijl ? ' class="aan"' : "") +
+      ">" + s.toUpperCase() + "</a>";
+  }).join(""));
 
 const wieVeld = document.getElementById("wie");
 const afdVeld = document.getElementById("afdeling");
@@ -242,10 +236,8 @@ document.querySelectorAll("[data-blok]").forEach((b) => b.addEventListener("clic
   teken();
 }));
 
-function ontsnap(s) {
-  return String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
-    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-}
+const ontsnap = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
 async function haal() {
   try {
@@ -253,7 +245,7 @@ async function haal() {
     const d = await r.json();
     if (d.fout) throw new Error(d.fout);
     data = d;
-    cijfers();
+    telling();
     teken();
   } catch (e) {
     document.getElementById("inhoud").innerHTML =
@@ -261,94 +253,84 @@ async function haal() {
   }
 }
 
-function cijfers() {
-  const beoordeeld = new Set(data.reacties.filter((r) => r.cijfer > 0).map((r) => r.kandidaat));
+function telling() {
+  const langs = new Set(data.reacties.filter((r) => r.advies === "Langs gaan").map((r) => r.kandidaat));
+  const gezien = new Set(data.reacties.map((r) => r.kandidaat));
   const mensen = new Set(data.reacties.map((r) => (r.wie || "").toLowerCase()).filter(Boolean));
   const scenes = data.decors.reduce((a, d) => a + (d.scenes || 0), 0);
-  document.getElementById("cijfers").innerHTML =
+  document.getElementById("telling").innerHTML =
     "<div><b>" + data.kandidaten.length + "</b><span>opties</span></div>" +
-    "<div><b>" + beoordeeld.size + "</b><span>beoordeeld</span></div>" +
+    "<div><b>" + gezien.size + "</b><span>met reactie</span></div>" +
+    "<div><b>" + langs.size + "</b><span>langs gaan</span></div>" +
     "<div><b>" + data.decors.length + "</b><span>decors</span></div>" +
     "<div><b>" + scenes + "</b><span>scenes</span></div>" +
-    "<div><b>" + mensen.size + "</b><span>stemmen</span></div>";
+    "<div><b>" + mensen.size + "</b><span>mensen</span></div>";
 }
 
-function decorNamen(ids) {
-  return ids.map((id) => (data.decors.find((d) => d.id === id) || {}).decor).filter(Boolean);
-}
+const decorNamen = (ids) => ids.map((id) => (data.decors.find((d) => d.id === id) || {}).decor).filter(Boolean);
 
 function teken() {
   const el = document.getElementById("inhoud");
   el.className = "";
-  el.innerHTML = tab === "kandidaten" ? tekenKandidaten() : tekenDecors();
+  el.innerHTML = tab === "kandidaten" ? tekenVellen() : tekenDecors();
   if (tab === "kandidaten") {
-    document.querySelectorAll(".kaart[data-kandidaat]").forEach((k, i) => {
-      k.style.animationDelay = Math.min(i * 45, 400) + "ms";
-      laadFotos(k);
-    });
+    document.querySelectorAll(".vel[data-kandidaat]").forEach((v) => laadFotos(v));
     knoppen();
   }
 }
 
-function tekenKandidaten() {
+function tekenVellen() {
   const lijst = data.kandidaten
     .filter((k) => blok === "alles" || k.blok === blok)
     .sort((a, b) => (a.blok === b.blok ? a.naam.localeCompare(b.naam, "nl") : a.blok < b.blok ? -1 : 1));
   if (!lijst.length) return '<div class="melding">Geen locaties in dit blok.</div>';
 
   const mijn = (wieVeld.value || "").toLowerCase();
-  let uit = "", vorigBlok = "", open = false;
+  const kort = { "Langs gaan": "j", "Twijfel": "t", "Niet nodig": "n" };
+  let uit = "", vorig = "";
 
   lijst.forEach((k) => {
-    if (k.blok !== vorigBlok) {
-      if (open) uit += "</div>";
-      uit += '<p class="sectie">' + ontsnap(k.blok) + "</p><div class=\"raster\">";
-      vorigBlok = k.blok; open = true;
-    }
+    if (k.blok !== vorig) { uit += '<p class="sectie">' + ontsnap(k.blok) + "</p>"; vorig = k.blok; }
     const rs = data.reacties.filter((r) => r.kandidaat === k.id);
-    const cf = rs.filter((r) => r.cijfer > 0).map((r) => r.cijfer);
-    const gem = cf.length ? (cf.reduce((a, b) => a + b, 0) / cf.length).toFixed(1) : "";
-    const eigen = rs.filter((r) => (r.wie || "").toLowerCase() === mijn)[0] || { cijfer: 0, opmerking: "" };
+    const tel = (w) => rs.filter((r) => r.advies === w).length;
+    const eigen = rs.filter((r) => (r.wie || "").toLowerCase() === mijn)[0] || { advies: "", opmerking: "" };
     const voor = decorNamen(k.decors);
 
-    uit += '<article class="kaart" data-kandidaat="' + k.id + '">' +
-      '<div class="beeld">' +
-        '<div class="merken">' +
-          '<span class="merk ' + (k.blok === "Nederland" ? "nl" : "at") + '">' + ontsnap(k.blok) + "</span>" +
-          '<span class="merk">' + ontsnap(k.status) + "</span>" +
-        "</div>" +
-        '<div class="leegbeeld">foto\'s laden</div>' +
-        '<div class="opbeeld">' +
-          "<h2>" + ontsnap(k.naam) + "</h2>" +
-          '<div class="cijfer' + (cf.length ? "" : " leeg") + '"><b>' + (gem || "—") + "</b><span>" +
-            (cf.length ? cf.length + "x" : "nog niet") + "</span></div>" +
-        "</div>" +
+    uit += '<section class="vel" data-kandidaat="' + k.id + '">' +
+      '<div class="velkop">' +
+        "<h2>" + ontsnap(k.naam) + "</h2>" +
+        '<span class="merk">' + ontsnap(k.blok) + "</span>" +
+        '<span class="merk">' + ontsnap(k.status) + "</span>" +
+        '<span class="telstrook">' +
+          '<span class="j">' + tel("Langs gaan") + " langs</span>" +
+          '<span class="t">' + tel("Twijfel") + " twijfel</span>" +
+          '<span class="n">' + tel("Niet nodig") + " niet</span>" +
+        "</span>" +
       "</div>" +
-      '<div class="lijf">' +
-        (voor.length ? '<p class="voor">Voor <b>' + voor.map(ontsnap).join(" · ") + "</b></p>"
+      '<div class="velmeta">' +
+        (voor.length ? '<p class="voor">Voor <b>' + voor.map(ontsnap).join(" &middot; ") + "</b></p>"
                      : '<p class="voor">Nog niet aan een decor gekoppeld</p>') +
         (k.adres ? '<p class="voor">' + ontsnap(k.adres) + "</p>" : "") +
         (k.notities ? '<p class="tekst">' + ontsnap(k.notities) + "</p>" : "") +
         (k.link ? '<a class="extern" href="' + ontsnap(k.link) + '" target="_blank" rel="noopener">Bekijk de advertentie</a>' : "") +
-        '<div class="strip"></div>' +
-        '<div class="stem">' +
-          '<div class="sterren" data-voor="' + k.id + '">' +
-            [1, 2, 3, 4, 5].map((n) =>
-              '<button class="ster' + (n <= eigen.cijfer ? " aan" : "") + '" data-cijfer="' + n +
-              '" aria-label="' + n + ' van 5">&#9733;</button>').join("") +
-          "</div>" +
-          '<textarea placeholder="Wat vind je ervan?">' + ontsnap(eigen.opmerking) + "</textarea>" +
-          '<button class="bewaar">Bewaren</button>' +
-        "</div>" +
-        (rs.length ? '<div class="gezegd">' + rs.map((r) =>
-            '<div class="zei"><div class="wie"><b>' + ontsnap(r.wie) + "</b>" +
-            (r.afdeling ? '<span class="voor">' + ontsnap(r.afdeling) + "</span>" : "") +
-            (r.cijfer ? '<span class="st">' + "&#9733;".repeat(r.cijfer) + "</span>" : "") + "</div>" +
-            ontsnap(r.opmerking) + "</div>").join("") + "</div>" : "") +
       "</div>" +
-    "</article>";
+      '<div class="vel-fotos"></div>' +
+      '<div class="oordeel">' +
+        '<div class="keuzes">' +
+          ["Langs gaan", "Twijfel", "Niet nodig"].map((w) =>
+            '<button class="keuze' + (eigen.advies === w ? " aan" : "") + '" data-w="' + w + '">' + w + "</button>").join("") +
+        "</div>" +
+        '<textarea placeholder="Waarom? (optioneel)">' + ontsnap(eigen.opmerking) + "</textarea>" +
+        '<button class="bewaar">Bewaren</button>' +
+      "</div>" +
+      (rs.length ? '<div class="gezegd">' + rs.map((r) =>
+          '<span class="zei"><b>' + ontsnap(r.wie) + "</b>" +
+          (r.afdeling ? " &middot; " + ontsnap(r.afdeling) : "") +
+          (r.advies ? ' <i class="' + (kort[r.advies] || "") + '">' + ontsnap(r.advies) + "</i>" : "") +
+          (r.opmerking ? " &mdash; " + ontsnap(r.opmerking) : "") + "</span>").join("") + "</div>" : "") +
+    "</section>";
   });
-  return uit + (open ? "</div>" : "");
+  return uit;
 }
 
 function tekenDecors() {
@@ -358,35 +340,33 @@ function tekenDecors() {
     return d.draaitIn === "AT" || d.draaitIn === "NL/AT";
   });
   let uit = '<div class="tabelwrap"><table><thead><tr><th>Decor</th><th>Int/ext</th><th>Scenes</th>' +
-    "<th>Draait in</th><th>Status</th><th>Opties</th></tr></thead><tbody>";
+    "<th>Draait in</th><th>Status</th><th>Opties van de scout</th></tr></thead><tbody>";
   let vorig = "";
   lijst.forEach((d) => {
     if (d.hoofd !== vorig) {
-      uit += '<tr class="groepkop"><td colspan="6">' + ontsnap(d.hoofd) + "</td></tr>";
+      const totaal = lijst.filter((x) => x.hoofd === d.hoofd).reduce((a, x) => a + (x.scenes || 0), 0);
+      uit += '<tr class="groepkop"><td colspan="5">' + ontsnap(d.hoofd) + '</td><td class="num">' +
+        totaal + " scenes</td></tr>";
       vorig = d.hoofd;
     }
     const kand = data.kandidaten.filter((k) => k.decors.indexOf(d.id) > -1).map((k) => k.naam);
     uit += "<tr><td>" + ontsnap(d.decor) + '</td><td class="stil">' + ontsnap(d.intext) +
       '</td><td class="num">' + d.scenes + '</td><td class="stil">' + ontsnap(d.draaitIn) +
       '</td><td class="stil">' + ontsnap(d.status) + "</td><td>" +
-      (kand.length ? kand.map(ontsnap).join(", ") : '<span class="stil">—</span>') + "</td></tr>";
+      (kand.length ? kand.map(ontsnap).join(", ") : '<span class="stil">&mdash;</span>') + "</td></tr>";
   });
   return uit + "</tbody></table></div>";
 }
 
-function opener(src) {
-  return () => {
-    const dlg = document.getElementById("groot");
-    dlg.querySelector("img").src = src;
-    dlg.showModal();
-  };
-}
+const opener = (src) => () => {
+  const dlg = document.getElementById("groot");
+  dlg.querySelector("img").src = src;
+  dlg.showModal();
+};
 
-async function laadFotos(kaart) {
-  const id = kaart.dataset.kandidaat;
-  const beeld = kaart.querySelector(".beeld");
-  const leeg = beeld.querySelector(".leegbeeld");
-  const strip = kaart.querySelector(".strip");
+async function laadFotos(vel) {
+  const id = vel.dataset.kandidaat;
+  const vak = vel.querySelector(".vel-fotos");
   try {
     if (!fotocache[id]) {
       const r = await fetch(api("actie=fotos&kandidaat=" + id));
@@ -395,55 +375,46 @@ async function laadFotos(kaart) {
     }
     const fotos = fotocache[id];
     if (!fotos.length) {
-      leeg.textContent = "nog geen foto's";
-      strip.remove();
+      vak.outerHTML = '<p class="geenfoto">Nog geen foto\'s van de scout</p>';
       return;
     }
     const klein = (p) => api("actie=foto&pad=" + encodeURIComponent(p));
     const groot = (p) => api("actie=groot&pad=" + encodeURIComponent(p));
-
-    const cover = new Image();
-    cover.alt = "";
-    cover.src = klein(fotos[0].pad);
-    cover.addEventListener("click", opener(groot(fotos[0].pad)));
-    cover.addEventListener("load", () => leeg.remove());
-    beeld.insertBefore(cover, beeld.firstChild);
-
-    const rest = fotos.slice(1, 16);
-    strip.innerHTML = rest.map((f) =>
-      '<img loading="lazy" alt="" src="' + klein(f.pad) + '" data-groot="' + groot(f.pad) + '">').join("") +
-      (fotos.length > 16 ? '<div class="rest">nog ' + (fotos.length - 16) + "<br>in Dropbox</div>" : "");
-    strip.querySelectorAll("img").forEach((img) => img.addEventListener("click", opener(img.dataset.groot)));
+    vak.innerHTML = fotos.map((f) =>
+      '<img loading="lazy" alt="" src="' + klein(f.pad) + '" data-groot="' + groot(f.pad) + '">').join("");
+    vak.querySelectorAll("img").forEach((img) => img.addEventListener("click", opener(img.dataset.groot)));
   } catch (e) {
-    leeg.textContent = "foto's niet gelukt";
+    vak.outerHTML = '<p class="geenfoto">Foto\'s niet gelukt</p>';
   }
 }
 
 function knoppen() {
-  document.querySelectorAll(".sterren").forEach((rij) => {
-    rij.querySelectorAll(".ster").forEach((b) => b.addEventListener("click", () => {
-      const n = Number(b.dataset.cijfer);
-      rij.querySelectorAll(".ster").forEach((x) => x.classList.toggle("aan", Number(x.dataset.cijfer) <= n));
-      rij.dataset.gekozen = String(n);
+  document.querySelectorAll(".keuzes").forEach((rij) => {
+    rij.querySelectorAll(".keuze").forEach((b) => b.addEventListener("click", () => {
+      rij.querySelectorAll(".keuze").forEach((x) => x.classList.toggle("aan", x === b));
+      rij.dataset.gekozen = b.dataset.w;
     }));
   });
 
   document.querySelectorAll(".bewaar").forEach((knop) => knop.addEventListener("click", async () => {
-    const kaart = knop.closest(".kaart");
-    const rij = kaart.querySelector(".sterren");
+    const vel = knop.closest(".vel");
+    const rij = vel.querySelector(".keuzes");
+    const aan = rij.querySelector(".keuze.aan");
+    const gekozen = rij.dataset.gekozen || (aan ? aan.dataset.w : "");
     const wie = wieVeld.value.trim();
     if (!wie) { toon("Vul eerst je naam in, rechtsboven."); wieVeld.focus(); return; }
+    if (!gekozen) { toon("Kies eerst langs gaan, twijfel of niet nodig."); return; }
     knop.disabled = true; knop.textContent = "Bezig";
     try {
       const r = await fetch(api("actie=reactie"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          kandidaat: kaart.dataset.kandidaat,
+          kandidaat: vel.dataset.kandidaat,
           wie,
           afdeling: afdVeld.value.trim(),
-          cijfer: Number(rij.dataset.gekozen || rij.querySelectorAll(".ster.aan").length),
-          opmerking: kaart.querySelector("textarea").value,
+          advies: gekozen,
+          opmerking: vel.querySelector("textarea").value,
         }),
       });
       const d = await r.json();

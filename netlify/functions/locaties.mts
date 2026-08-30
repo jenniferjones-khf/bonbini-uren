@@ -51,6 +51,7 @@ const R = {
   cijfer: "fldWxR1REVq3IMckS",
   opmerking: "fld6NCYEi8fvBS0YE",
   wanneer: "fldm5c6ePz5iDTb7g",
+  advies: "fldh4SJOoAPe83hrZ",
 };
 
 const APP_KEY = "rnxxpzxpwl2aawz";
@@ -176,6 +177,7 @@ async function lijst() {
       wie: r.fields[R.wie] || "",
       afdeling: r.fields[R.afdeling] || "",
       cijfer: r.fields[R.cijfer] || 0,
+      advies: r.fields[R.advies] || "",
       opmerking: r.fields[R.opmerking] || "",
       wanneer: r.fields[R.wanneer] || "",
     })),
@@ -205,6 +207,7 @@ async function bewaarReactie(body: any) {
     [R.wie]: wie,
     [R.afdeling]: String(body.afdeling || "").trim(),
     [R.cijfer]: Math.max(0, Math.min(5, Number(body.cijfer) || 0)),
+    [R.advies]: ["Langs gaan", "Twijfel", "Niet nodig"].indexOf(String(body.advies || "")) > -1 ? String(body.advies) : null,
     [R.opmerking]: String(body.opmerking || "").trim(),
     [R.wanneer]: new Date().toISOString(),
   };
