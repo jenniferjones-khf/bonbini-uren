@@ -174,7 +174,9 @@ function teken() {
 }
 
 function tekenKandidaten() {
-  const lijst = data.kandidaten.filter((k) => blok === "alles" || k.blok === blok);
+  const lijst = data.kandidaten
+    .filter((k) => blok === "alles" || k.blok === blok)
+    .sort((a, b) => (a.blok === b.blok ? a.naam.localeCompare(b.naam, "nl") : a.blok < b.blok ? -1 : 1));
   if (!lijst.length) return '<div class="melding">Geen locaties in dit blok.</div>';
   const mijn = (wieVeld.value || "").toLowerCase();
 
