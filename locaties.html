@@ -85,6 +85,23 @@
   .sectie:first-child{margin-top:0}
   .sectie::after{content:"";flex:1;height:1px;background:var(--lijn)}
 
+  .groep{border:1px solid var(--lijn);border-radius:var(--radius);background:var(--vlak);margin-bottom:10px;
+    overflow:hidden;box-shadow:var(--schaduw)}
+  .groep>summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;gap:12px;align-items:center;
+    flex-wrap:wrap}
+  .groep>summary::-webkit-details-marker{display:none}
+  .groep>summary:hover{background:var(--vlak2)}
+  .groep>summary .pijl{width:9px;height:9px;border-right:2px solid var(--zacht2);border-bottom:2px solid var(--zacht2);
+    transform:rotate(-45deg);transition:transform .15s;flex:0 0 auto;margin-right:2px}
+  .groep[open]>summary{border-bottom:1px solid var(--lijn);background:var(--vlak2)}
+  .groep[open]>summary .pijl{transform:rotate(45deg)}
+  .groep>summary h2{font-family:var(--kopFont);font-weight:var(--kopGewicht);font-size:17px;margin:0;
+    letter-spacing:-.01em}
+  .groep>summary .aantal{font:400 11.5px var(--mono);color:var(--zacht2)}
+  .groepinhoud{padding:10px 10px 4px}
+  .groepinhoud .vel{margin-bottom:10px}
+  .groepinhoud .vel:last-child{margin-bottom:6px}
+
   .vel{background:var(--vlak);border:1px solid var(--lijn);border-radius:var(--radius);margin-bottom:14px;
     box-shadow:var(--schaduw);overflow:hidden}
   .velkop{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;padding:14px 16px 10px}
@@ -267,63 +284,95 @@ function teken() {
   el.className = "";
   el.innerHTML = tab === "kandidaten" ? tekenVellen() : tekenDecors();
   if (tab === "kandidaten") {
-    document.querySelectorAll(".vel[data-kandidaat]").forEach((v) => laadFotos(v));
+    document.querySelectorAll("details.groep").forEach((g) => g.addEventListener("toggle", () => {
+      if (g.open) openGroep(g);
+    }));
     knoppen();
   }
 }
 
+function groepVan(k) {
+  if (!k.decors.length) return "Nog niet gekoppeld aan een decor";
+  const d = data.decors.find((x) => x.id === k.decors[0]);
+  return d ? (d.hoofd || d.decor) : "Nog niet gekoppeld aan een decor";
+}
+
 function tekenVellen() {
-  const lijst = data.kandidaten
-    .filter((k) => blok === "alles" || k.blok === blok)
-    .sort((a, b) => (a.blok === b.blok ? a.naam.localeCompare(b.naam, "nl") : a.blok < b.blok ? -1 : 1));
+  const lijst = data.kandidaten.filter((k) => blok === "alles" || k.blok === blok);
   if (!lijst.length) return '<div class="melding">Geen locaties in dit blok.</div>';
 
   const mijn = (wieVeld.value || "").toLowerCase();
   const kort = { "Langs gaan": "j", "Twijfel": "t", "Niet nodig": "n" };
-  let uit = "", vorig = "";
 
+  const groepen = {};
   lijst.forEach((k) => {
-    if (k.blok !== vorig) { uit += '<p class="sectie">' + ontsnap(k.blok) + "</p>"; vorig = k.blok; }
-    const rs = data.reacties.filter((r) => r.kandidaat === k.id);
-    const tel = (w) => rs.filter((r) => r.advies === w).length;
-    const eigen = rs.filter((r) => (r.wie || "").toLowerCase() === mijn)[0] || { advies: "", opmerking: "" };
-    const voor = decorNamen(k.decors);
-
-    uit += '<section class="vel" data-kandidaat="' + k.id + '">' +
-      '<div class="velkop">' +
-        "<h2>" + ontsnap(k.naam) + "</h2>" +
-        '<span class="merk">' + ontsnap(k.blok) + "</span>" +
-        '<span class="merk">' + ontsnap(k.status) + "</span>" +
-        '<span class="telstrook">' +
-          '<span class="j">' + tel("Langs gaan") + " langs</span>" +
-          '<span class="t">' + tel("Twijfel") + " twijfel</span>" +
-          '<span class="n">' + tel("Niet nodig") + " niet</span>" +
-        "</span>" +
-      "</div>" +
-      '<div class="velmeta">' +
-        (voor.length ? '<p class="voor">Voor <b>' + voor.map(ontsnap).join(" &middot; ") + "</b></p>"
-                     : '<p class="voor">Nog niet aan een decor gekoppeld</p>') +
-        (k.adres ? '<p class="voor">' + ontsnap(k.adres) + "</p>" : "") +
-        (k.notities ? '<p class="tekst">' + ontsnap(k.notities) + "</p>" : "") +
-        (k.link ? '<a class="extern" href="' + ontsnap(k.link) + '" target="_blank" rel="noopener">Bekijk de advertentie</a>' : "") +
-      "</div>" +
-      '<div class="vel-fotos"></div>' +
-      '<div class="oordeel">' +
-        '<div class="keuzes">' +
-          ["Langs gaan", "Twijfel", "Niet nodig"].map((w) =>
-            '<button class="keuze' + (eigen.advies === w ? " aan" : "") + '" data-w="' + w + '">' + w + "</button>").join("") +
-        "</div>" +
-        '<textarea placeholder="Waarom? (optioneel)">' + ontsnap(eigen.opmerking) + "</textarea>" +
-        '<button class="bewaar">Bewaren</button>' +
-      "</div>" +
-      (rs.length ? '<div class="gezegd">' + rs.map((r) =>
-          '<span class="zei"><b>' + ontsnap(r.wie) + "</b>" +
-          (r.afdeling ? " &middot; " + ontsnap(r.afdeling) : "") +
-          (r.advies ? ' <i class="' + (kort[r.advies] || "") + '">' + ontsnap(r.advies) + "</i>" : "") +
-          (r.opmerking ? " &mdash; " + ontsnap(r.opmerking) : "") + "</span>").join("") + "</div>" : "") +
-    "</section>";
+    const g = groepVan(k);
+    (groepen[g] = groepen[g] || []).push(k);
   });
-  return uit;
+
+  const namen = Object.keys(groepen).sort((a, b) => {
+    if (a.indexOf("Nog niet") === 0) return 1;
+    if (b.indexOf("Nog niet") === 0) return -1;
+    return a.localeCompare(b, "nl");
+  });
+
+  return namen.map((g) => {
+    const groep = groepen[g].sort((a, b) => a.naam.localeCompare(b.naam, "nl"));
+    const alle = data.reacties.filter((r) => groep.some((k) => k.id === r.kandidaat));
+    const telG = (w) => alle.filter((r) => r.advies === w).length;
+    const metFoto = groep.filter((k) => k.map !== false).length;
+
+    const vellen = groep.map((k) => {
+      const rs = data.reacties.filter((r) => r.kandidaat === k.id);
+      const tel = (w) => rs.filter((r) => r.advies === w).length;
+      const eigen = rs.filter((r) => (r.wie || "").toLowerCase() === mijn)[0] || { advies: "", opmerking: "" };
+      const voor = decorNamen(k.decors);
+      const zonderFotos = !!k.link;
+
+      return '<section class="vel" data-kandidaat="' + k.id + '"' + (zonderFotos ? ' data-geenfotos="1"' : "") + ">" +
+        '<div class="velkop">' +
+          "<h2>" + ontsnap(k.naam) + "</h2>" +
+          '<span class="merk">' + ontsnap(k.blok) + "</span>" +
+          '<span class="merk">' + ontsnap(k.status) + "</span>" +
+          '<span class="telstrook">' +
+            '<span class="j">' + tel("Langs gaan") + " langs</span>" +
+            '<span class="t">' + tel("Twijfel") + " twijfel</span>" +
+            '<span class="n">' + tel("Niet nodig") + " niet</span>" +
+          "</span>" +
+        "</div>" +
+        '<div class="velmeta">' +
+          (voor.length ? '<p class="voor">Voor <b>' + voor.map(ontsnap).join(" &middot; ") + "</b></p>" : "") +
+          (k.adres ? '<p class="voor">' + ontsnap(k.adres) + "</p>" : "") +
+          (k.notities ? '<p class="tekst">' + ontsnap(k.notities) + "</p>" : "") +
+          (k.link ? '<a class="extern" href="' + ontsnap(k.link) + '" target="_blank" rel="noopener">Bekijk de advertentie</a>' : "") +
+        "</div>" +
+        (zonderFotos ? '<p class="geenfoto">Nog niet bezocht, dus geen scoutfoto\'s. Beoordeel op de advertentie.</p>'
+                     : '<div class="vel-fotos"></div>') +
+        '<div class="oordeel">' +
+          '<div class="keuzes">' +
+            ["Langs gaan", "Twijfel", "Niet nodig"].map((w) =>
+              '<button class="keuze' + (eigen.advies === w ? " aan" : "") + '" data-w="' + w + '">' + w + "</button>").join("") +
+          "</div>" +
+          '<textarea placeholder="Waarom? (optioneel)">' + ontsnap(eigen.opmerking) + "</textarea>" +
+          '<button class="bewaar">Bewaren</button>' +
+        "</div>" +
+        (rs.length ? '<div class="gezegd">' + rs.map((r) =>
+            '<span class="zei"><b>' + ontsnap(r.wie) + "</b>" +
+            (r.afdeling ? " &middot; " + ontsnap(r.afdeling) : "") +
+            (r.advies ? ' <i class="' + (kort[r.advies] || "") + '">' + ontsnap(r.advies) + "</i>" : "") +
+            (r.opmerking ? " &mdash; " + ontsnap(r.opmerking) : "") + "</span>").join("") + "</div>" : "") +
+      "</section>";
+    }).join("");
+
+    return '<details class="groep"><summary><i class="pijl"></i><h2>' + ontsnap(g) + "</h2>" +
+      '<span class="aantal">' + groep.length + (groep.length === 1 ? " optie" : " opties") + "</span>" +
+      '<span class="telstrook">' +
+        '<span class="j">' + telG("Langs gaan") + " langs</span>" +
+        '<span class="t">' + telG("Twijfel") + " twijfel</span>" +
+        '<span class="n">' + telG("Niet nodig") + " niet</span>" +
+      "</span></summary>" +
+      '<div class="groepinhoud">' + vellen + "</div></details>";
+  }).join("");
 }
 
 function tekenDecors() {
@@ -349,6 +398,13 @@ function tekenDecors() {
       (kand.length ? kand.map(ontsnap).join(", ") : '<span class="stil">&mdash;</span>') + "</td></tr>";
   });
   return uit + "</tbody></table></div>";
+}
+
+async function openGroep(groep) {
+  if (groep.dataset.geladen) return;
+  groep.dataset.geladen = "1";
+  const vellen = [...groep.querySelectorAll(".vel[data-kandidaat]")].filter((v) => !v.dataset.geenfotos);
+  for (const v of vellen) await laadFotos(v);
 }
 
 const opener = (src) => () => {
