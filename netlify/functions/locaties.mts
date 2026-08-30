@@ -20,6 +20,7 @@ const BASE = "app4HQkMqFpZCnqpv";
 const TB_DECORS = "tbljinqf7KnDAJ2dc";
 const TB_KANDIDATEN = "tbldTqBvnxfLcHUZI";
 const TB_REACTIES = "tblkbS3gyg6YewYjK";
+const TB_PLANNING = "tbltzk59cjqgKkHOt";
 
 const D = {
   decor: "fldh1eoX3WQi8gKhL",
@@ -41,6 +42,18 @@ const K = {
   status: "fldXpV75NOakf4pbp",
   voorDecor: "fldFDgBH3om57tzcY",
   link: "fldOeJwfkusjWGq6B",
+};
+
+const P = {
+  dag: "flds9yAxSLDDzBIj3",
+  datum: "fldhrNgpygrecywJj",
+  blok: "fldbuoJ9ujgBVUCQj",
+  sets: "fldT2wl420dnsc8j1",
+  decor: "fldinmqDvSgCRtC6y",
+  scenes: "flddr2OOhXKw6tRzA",
+  aantal: "fldSf3HiyVrnYtmoq",
+  paginas: "fldwer33sATTDQxx5",
+  figuratie: "fldv2mQhaClLmIJWU",
 };
 
 const R = {
@@ -143,10 +156,11 @@ async function alleRecords(tabel: string) {
 // ------------------------------------------------------------------ lijst
 
 async function lijst() {
-  const [decors, kandidaten, reacties] = await Promise.all([
+  const [decors, kandidaten, reacties, planning] = await Promise.all([
     alleRecords(TB_DECORS),
     alleRecords(TB_KANDIDATEN),
     alleRecords(TB_REACTIES),
+    alleRecords(TB_PLANNING),
   ]);
 
   return {
@@ -171,6 +185,19 @@ async function lijst() {
       link: r.fields[K.link] || "",
       decors: r.fields[K.voorDecor] || [],
     })),
+    planning: planning
+      .map((r: any) => ({
+        dag: r.fields[P.dag] || "",
+        datum: r.fields[P.datum] || "",
+        blok: r.fields[P.blok] || "",
+        sets: r.fields[P.sets] || "",
+        decor: r.fields[P.decor] || "",
+        scenes: r.fields[P.scenes] || "",
+        aantal: r.fields[P.aantal] || 0,
+        paginas: r.fields[P.paginas] || "",
+        figuratie: r.fields[P.figuratie] || 0,
+      }))
+      .sort((a: any, b: any) => String(a.datum).localeCompare(String(b.datum))),
     reacties: reacties.map((r: any) => ({
       id: r.id,
       kandidaat: (r.fields[R.kandidaat] || [])[0] || "",

@@ -99,6 +99,7 @@
     letter-spacing:-.01em}
   .groep>summary .aantal{font:400 11.5px var(--mono);color:var(--zacht2)}
   .groepinhoud{padding:10px 10px 4px}
+  .planregel{margin:2px 6px 12px;font:400 11.5px var(--mono);color:var(--zacht2);line-height:1.7}
   .groepinhoud .vel{margin-bottom:10px}
   .groepinhoud .vel:last-child{margin-bottom:6px}
 
@@ -196,6 +197,7 @@
     <div class="pillen">
       <button class="pil aan" data-tab="kandidaten">Scoutfoto's</button>
       <button class="pil" data-tab="decors">Locatielijst uit het script</button>
+      <button class="pil" data-tab="planning">Draaiplanning</button>
     </div>
     <div class="pillen">
       <button class="pil aan" data-blok="alles">Alles</button>
@@ -282,7 +284,7 @@ const decorNamen = (ids) => ids.map((id) => (data.decors.find((d) => d.id === id
 function teken() {
   const el = document.getElementById("inhoud");
   el.className = "";
-  el.innerHTML = tab === "kandidaten" ? tekenVellen() : tekenDecors();
+  el.innerHTML = tab === "kandidaten" ? tekenVellen() : tab === "decors" ? tekenDecors() : tekenPlanning();
   if (tab === "kandidaten") {
     document.querySelectorAll("details.groep").forEach((g) => g.addEventListener("toggle", () => {
       if (g.open) openGroep(g);
@@ -364,6 +366,14 @@ function tekenVellen() {
       "</section>";
     }).join("");
 
+    const dagen = (data.planning || []).filter((d) => d.decor === g);
+    const scenesTotaal = dagen.reduce((a, d) => a + (d.aantal || 0), 0);
+    const planregel = dagen.length
+      ? '<p class="planregel">' + dagen.length + (dagen.length === 1 ? " draaidag" : " draaidagen") +
+        ", " + scenesTotaal + (scenesTotaal === 1 ? " scène" : " scènes") + ": " +
+        dagen.map((d) => ontsnap(d.dag) + " (" + ontsnap(d.scenes) + ")").join(" &middot; ") + "</p>"
+      : "";
+
     return '<details class="groep"><summary><i class="pijl"></i><h2>' + ontsnap(g) + "</h2>" +
       '<span class="aantal">' + groep.length + (groep.length === 1 ? " optie" : " opties") + "</span>" +
       '<span class="telstrook">' +
@@ -371,7 +381,7 @@ function tekenVellen() {
         '<span class="t">' + telG("Twijfel") + " twijfel</span>" +
         '<span class="n">' + telG("Niet nodig") + " niet</span>" +
       "</span></summary>" +
-      '<div class="groepinhoud">' + vellen + "</div></details>";
+      '<div class="groepinhoud">' + planregel + vellen + "</div></details>";
   }).join("");
 }
 
@@ -405,6 +415,27 @@ async function openGroep(groep) {
   groep.dataset.geladen = "1";
   const vellen = [...groep.querySelectorAll(".vel[data-kandidaat]")].filter((v) => !v.dataset.geenfotos);
   for (const v of vellen) await laadFotos(v);
+}
+
+function tekenPlanning() {
+  const dagen = data.planning || [];
+  if (!dagen.length) return '<div class="melding">Nog geen draaiplanning ingelezen.</div>';
+  let uit = '<div class="tabelwrap"><table><thead><tr><th>Dag</th><th>Datum</th><th>Blok</th>' +
+    "<th>Set</th><th>Scènes</th><th>Aantal</th><th>Pagina's</th><th>Figuratie</th></tr></thead><tbody>";
+  let vorigBlok = "";
+  dagen.forEach((d) => {
+    if (d.blok !== vorigBlok) {
+      uit += '<tr class="groepkop"><td colspan="8">' + ontsnap(d.blok) + "</td></tr>";
+      vorigBlok = d.blok;
+    }
+    const datum = d.datum ? new Date(d.datum).toLocaleDateString("nl-NL",
+      { weekday: "short", day: "numeric", month: "short", year: "numeric" }) : "";
+    uit += "<tr><td>" + ontsnap(d.dag) + '</td><td class="stil">' + ontsnap(datum) +
+      '</td><td class="stil">' + ontsnap(d.blok) + "</td><td>" + ontsnap(d.sets) + "</td><td>" +
+      ontsnap(d.scenes) + '</td><td class="num">' + d.aantal + '</td><td class="num">' +
+      ontsnap(d.paginas) + '</td><td class="num">' + d.figuratie + "</td></tr>";
+  });
+  return uit + "</tbody></table></div>";
 }
 
 const opener = (src) => () => {
