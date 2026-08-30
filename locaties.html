@@ -104,6 +104,7 @@
   .planregel i{font-style:normal;color:var(--zacht2);opacity:.75;margin-left:8px}
   .dagrij{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:7px}
   .dagnaam.nogniet{color:var(--mis)}
+  td.subset{padding-left:30px}
   .dagnaam{min-width:104px;font:500 10px var(--mono);letter-spacing:.1em;text-transform:uppercase;
     color:var(--zacht)}
   .sc{position:relative;display:inline-block;padding:2px 7px;border:1px solid var(--lijn2);
@@ -415,6 +416,10 @@ function tekenDecors() {
     if (blok === "Nederland") return d.draaitIn === "NL" || d.draaitIn === "NL/AT";
     return d.draaitIn === "AT" || d.draaitIn === "NL/AT";
   });
+  lijst.sort((a, b) => {
+    const h = String(a.hoofd || a.decor).localeCompare(String(b.hoofd || b.decor), "nl");
+    return h || String(a.decor).localeCompare(String(b.decor), "nl");
+  });
   let uit = '<div class="tabelwrap"><table><thead><tr><th>Decor</th><th>Int/ext</th><th>Scenes</th>' +
     "<th>Draait in</th><th>Status</th><th>Opties van de scout</th></tr></thead><tbody>";
   let vorig = "";
@@ -426,7 +431,8 @@ function tekenDecors() {
       vorig = d.hoofd;
     }
     const kand = data.kandidaten.filter((k) => k.decors.indexOf(d.id) > -1).map((k) => k.naam);
-    uit += "<tr><td>" + ontsnap(d.decor) + '</td><td class="stil">' + ontsnap(d.intext) +
+    const kort = d.hoofd && d.decor.indexOf(d.hoofd + " - ") === 0 ? d.decor.slice(d.hoofd.length + 3) : d.decor;
+    uit += '<tr><td class="subset">' + ontsnap(kort) + '</td><td class="stil">' + ontsnap(d.intext) +
       '</td><td class="num">' + d.scenes + '</td><td class="stil">' + ontsnap(d.draaitIn) +
       '</td><td class="stil">' + ontsnap(d.status) + "</td><td>" +
       (kand.length ? kand.map(ontsnap).join(", ") : '<span class="stil">&mdash;</span>') + "</td></tr>";
