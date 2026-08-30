@@ -103,6 +103,7 @@
   .planregel b{color:var(--tekst);font-weight:600}
   .planregel i{font-style:normal;color:var(--zacht2);opacity:.75;margin-left:8px}
   .dagrij{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:7px}
+  .dagnaam.nogniet{color:var(--mis)}
   .dagnaam{min-width:104px;font:500 10px var(--mono);letter-spacing:.1em;text-transform:uppercase;
     color:var(--zacht)}
   .sc{position:relative;display:inline-block;padding:2px 7px;border:1px solid var(--lijn2);
@@ -389,10 +390,10 @@ function tekenVellen() {
       if (l && l.dag === sc.dag) l.scenes.push(sc); else perDag.push({ dag: sc.dag, datum: sc.datum, scenes: [sc] });
     });
     const planregel = scenes.length
-      ? '<div class="planregel"><b>' + perDag.length + (perDag.length === 1 ? " draaidag" : " draaidagen") +
+      ? '<div class="planregel"><b>' + perDag.filter((d) => d.dag).length + (perDag.filter((d) => d.dag).length === 1 ? " draaidag" : " draaidagen") +
         "</b>, " + scenes.length + (scenes.length === 1 ? " sc\u00e8ne" : " sc\u00e8nes") +
         ' <i>ga op een sc\u00e8ne staan om te lezen waar die over gaat</i>' +
-        perDag.map((d) => '<span class="dagrij"><span class="dagnaam">' + ontsnap(d.dag) +
+        perDag.map((d) => '<span class="dagrij"><span class="dagnaam' + (d.dag ? "" : " nogniet") + '">' + ontsnap(d.dag || "Nog niet ingepland") +
           (d.datum ? " &middot; " + ontsnap(kortDatum(d.datum)) : "") + "</span>" +
           d.scenes.map(sceneChip).join("") + "</span>").join("") + "</div>"
       : "";
@@ -467,8 +468,8 @@ function tekenPlanning() {
   rijen.forEach((r) => {
     if (r.dag !== vorigeDag) {
       const aant = rijen.filter((x) => x.dag === r.dag).length;
-      uit += '<tr class="groepkop"><td colspan="5"><b>' + ontsnap(r.dag) + "</b> &middot; " +
-        ontsnap(langDatum(r.datum)) + " &middot; " + ontsnap(r.blok) + '</td><td colspan="2" class="num">' +
+      uit += '<tr class="groepkop"><td colspan="5"><b>' + ontsnap(r.dag || "Nog niet ingepland") + "</b>" +
+        (r.datum ? " &middot; " + ontsnap(langDatum(r.datum)) : "") + (r.blok ? " &middot; " + ontsnap(r.blok) : "") + '</td><td colspan="2" class="num">' +
         aant + (aant === 1 ? " sc\u00e8ne" : " sc\u00e8nes") + "</td></tr>";
       vorigeDag = r.dag;
     }

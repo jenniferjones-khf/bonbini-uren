@@ -202,6 +202,7 @@ async function lijst() {
         figuratie: r.fields[P.figuratie] || 0,
       }))
       .sort((a: any, b: any) => {
+        if (!a.datum !== !b.datum) return a.datum ? -1 : 1; // nog niet ingepland onderaan
         const d = String(a.datum).localeCompare(String(b.datum));
         if (d) return d;
         const n = (x: string) => parseInt(String(x).replace(/\D+/g, ""), 10) || 0;
