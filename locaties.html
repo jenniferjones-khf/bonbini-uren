@@ -6,78 +6,117 @@
 <title>Locaties — Bon Bini</title>
 <style>
   :root{
-    --inkt:#12141a; --inkt2:#1c1f28; --lijn:#2b303c; --lijn2:#e3e6ec;
-    --papier:#f6f7f9; --wit:#ffffff; --grijs:#6b7280; --grijs2:#9aa1ad;
+    --inkt:#12141a; --inkt2:#1c1f28; --lijn2:#e5e7ec;
+    --papier:#f4f5f7; --wit:#ffffff; --grijs:#6b7280; --grijs2:#9aa1ad;
     --groen:#0f7b52; --groen-l:#e6f4ee; --oranje:#a2600d; --oranje-l:#fdf3e3;
-    --paars:#5b2fa8; --paars-l:#efe9fb; --rood:#a4262c;
+    --paars:#5b2fa8; --paars-l:#efe9fb; --goud:#d99b09;
+    --schaduw:0 1px 2px rgba(18,20,26,.04), 0 12px 28px -20px rgba(18,20,26,.35);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0}
   body{background:var(--papier);color:var(--inkt);
-    font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
-    padding-bottom:70px}
-  .wrap{max-width:940px;margin:0 auto;padding:0 14px}
+    font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+    padding-bottom:80px;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 18px}
 
-  header{background:var(--inkt);color:#fff;padding:18px 0 16px}
-  .prod{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#8c93a3;margin:0 0 6px}
-  h1{font-size:21px;margin:0;font-weight:650;letter-spacing:-.01em}
-  header p{color:#aeb5c2;font-size:13px;margin:6px 0 0;max-width:62ch}
+  header{background:var(--inkt);color:#fff;padding:26px 0 24px}
+  .prod{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#8c93a3;margin:0 0 8px}
+  h1{font-size:26px;margin:0;font-weight:660;letter-spacing:-.02em}
+  header p{color:#aeb5c2;font-size:14px;margin:8px 0 0;max-width:60ch}
+  .telling{display:flex;gap:26px;margin-top:18px;flex-wrap:wrap}
+  .telling div{font-size:12px;color:#8c93a3;letter-spacing:.04em}
+  .telling b{display:block;font-size:22px;color:#fff;font-weight:640;letter-spacing:-.01em;
+    font-variant-numeric:tabular-nums}
 
-  .balk{background:var(--wit);border-bottom:1px solid var(--lijn2);position:sticky;top:0;z-index:5}
-  .balk .wrap{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding-top:10px;padding-bottom:10px}
-  .knop{border:1px solid var(--lijn2);background:var(--wit);border-radius:8px;padding:7px 12px;
-    font:inherit;font-size:13px;cursor:pointer;color:var(--inkt)}
-  .knop.aan{background:var(--inkt);border-color:var(--inkt);color:#fff}
+  .balk{background:rgba(244,245,247,.92);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--lijn2);position:sticky;top:0;z-index:5}
+  .balk .wrap{display:flex;gap:16px;flex-wrap:wrap;align-items:center;padding-top:11px;padding-bottom:11px}
+  .groep{display:flex;gap:4px;background:var(--wit);border:1px solid var(--lijn2);border-radius:10px;padding:3px}
+  .knop{border:0;background:none;border-radius:7px;padding:6px 12px;font:inherit;font-size:13px;
+    cursor:pointer;color:var(--grijs);white-space:nowrap}
+  .knop.aan{background:var(--inkt);color:#fff}
   .ikben{margin-left:auto;display:flex;gap:6px;align-items:center;font-size:13px;color:var(--grijs)}
-  .ikben input{border:1px solid var(--lijn2);border-radius:8px;padding:6px 9px;font:inherit;font-size:13px;width:130px}
+  .ikben input{border:1px solid var(--lijn2);border-radius:9px;padding:7px 10px;font:inherit;
+    font-size:13px;width:120px;background:var(--wit)}
+  .ikben input:focus{outline:2px solid var(--inkt);outline-offset:-1px}
 
-  main{padding-top:16px}
-  .kaart{background:var(--wit);border:1px solid var(--lijn2);border-radius:12px;margin-bottom:14px;overflow:hidden}
-  .kop{padding:14px 16px;display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
-  .kop h2{font-size:17px;margin:0;font-weight:640}
-  .chip{font-size:11px;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;
-    padding:3px 9px;border:1px solid var(--lijn2);color:var(--grijs);white-space:nowrap}
-  .chip.nl{background:var(--paars-l);border-color:#d9cdf3;color:var(--paars)}
-  .chip.at{background:var(--groen-l);border-color:#c3e4d6;color:var(--groen)}
-  .score{margin-left:auto;text-align:right;font-size:13px;color:var(--grijs)}
-  .score b{display:block;font-size:19px;color:var(--inkt)}
-  .body{padding:0 16px 14px}
-  .voor{font-size:13px;color:var(--grijs);margin:0 0 8px}
-  .voor span{color:var(--inkt)}
-  .notitie{font-size:14px;color:#3b4150;white-space:pre-wrap;margin:0 0 12px}
+  main{padding-top:22px}
+  .blokkop{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--grijs2);
+    margin:26px 0 12px;font-weight:600}
+  .blokkop:first-child{margin-top:0}
 
-  .fotos{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;margin-bottom:12px}
-  .fotos img{width:100%;height:105px;object-fit:cover;border-radius:8px;background:var(--lijn2);
-    cursor:zoom-in;display:block;border:1px solid var(--lijn2)}
-  .meer{font-size:13px;color:var(--grijs);margin:0 0 12px}
+  .kaart{background:var(--wit);border:1px solid var(--lijn2);border-radius:16px;margin-bottom:18px;
+    overflow:hidden;box-shadow:var(--schaduw)}
+  .cover{position:relative;aspect-ratio:21/9;background:#e9ebef;display:block;width:100%;
+    object-fit:cover;border-bottom:1px solid var(--lijn2)}
+  .coverleeg{aspect-ratio:21/9;background:repeating-linear-gradient(45deg,#eceef2,#eceef2 12px,#e6e8ee 12px,#e6e8ee 24px);
+    display:flex;align-items:center;justify-content:center;color:var(--grijs2);font-size:13px}
 
-  .reactie{border-top:1px solid var(--lijn2);padding-top:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start}
-  .sterren{display:flex;gap:2px}
-  .ster{background:none;border:0;font-size:22px;line-height:1;cursor:pointer;color:#d6dae2;padding:0 1px}
-  .ster.aan{color:#e0a80d}
-  .reactie textarea{flex:1;min-width:220px;border:1px solid var(--lijn2);border-radius:8px;padding:8px 10px;
-    font:inherit;font-size:14px;resize:vertical;min-height:38px}
-  .bewaar{background:var(--inkt);color:#fff;border:0;border-radius:8px;padding:9px 14px;font:inherit;
-    font-size:14px;cursor:pointer}
-  .gezegd{font-size:13px;color:var(--grijs);margin:10px 0 0;border-top:1px dashed var(--lijn2);padding-top:10px}
-  .gezegd div{margin-top:4px}
-  .gezegd b{color:var(--inkt)}
+  .kop{padding:16px 20px 12px;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
+  .kop h2{font-size:19px;margin:0;font-weight:650;letter-spacing:-.01em}
+  .chip{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;
+    padding:4px 10px;border:1px solid var(--lijn2);color:var(--grijs);white-space:nowrap;font-weight:600}
+  .chip.nl{background:var(--paars-l);border-color:#ded3f7;color:var(--paars)}
+  .chip.at{background:var(--groen-l);border-color:#c9e7da;color:var(--groen)}
+  .score{margin-left:auto;text-align:right;font-size:12px;color:var(--grijs2);line-height:1.3}
+  .score b{display:block;font-size:24px;color:var(--inkt);font-weight:650;font-variant-numeric:tabular-nums}
+  .score.leeg b{color:var(--grijs2);font-weight:500}
 
-  table{width:100%;border-collapse:collapse;background:var(--wit);border:1px solid var(--lijn2);border-radius:12px}
-  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--lijn2);font-size:14px;vertical-align:top}
-  th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--grijs);font-weight:600}
+  .body{padding:0 20px 18px}
+  .meta{font-size:13.5px;color:var(--grijs);margin:0 0 6px}
+  .meta span{color:var(--inkt)}
+  .notitie{font-size:14px;color:#3c414d;white-space:pre-wrap;margin:10px 0 0;max-width:70ch}
+
+  .strip{display:flex;gap:6px;overflow-x:auto;padding:14px 0 4px;scrollbar-width:thin}
+  .strip img{width:112px;height:76px;flex:0 0 auto;object-fit:cover;border-radius:9px;
+    background:#e9ebef;cursor:zoom-in;border:1px solid var(--lijn2)}
+  .strip .rest{width:112px;height:76px;flex:0 0 auto;border-radius:9px;border:1px dashed var(--lijn2);
+    display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--grijs2);text-align:center;padding:6px}
+
+  .reactie{border-top:1px solid var(--lijn2);margin-top:14px;padding-top:14px;
+    display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .sterren{display:flex;gap:1px}
+  .ster{background:none;border:0;font-size:25px;line-height:1;cursor:pointer;color:#dcdfe6;padding:0 1px;
+    transition:color .12s}
+  .ster.aan{color:var(--goud)}
+  .ster:hover{color:#efc352}
+  .reactie textarea{flex:1;min-width:230px;border:1px solid var(--lijn2);border-radius:10px;
+    padding:9px 12px;font:inherit;font-size:14px;resize:vertical;min-height:40px;background:var(--papier)}
+  .reactie textarea:focus{outline:2px solid var(--inkt);outline-offset:-1px;background:var(--wit)}
+  .bewaar{background:var(--inkt);color:#fff;border:0;border-radius:10px;padding:10px 18px;font:inherit;
+    font-size:14px;font-weight:550;cursor:pointer}
+  .bewaar:disabled{opacity:.5}
+
+  .gezegd{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+  .zei{background:var(--papier);border-radius:10px;padding:9px 12px;font-size:13.5px;color:#3c414d}
+  .zei b{color:var(--inkt);font-weight:600}
+  .zei .st{color:var(--goud);letter-spacing:1px}
+
+  table{width:100%;border-collapse:separate;border-spacing:0;background:var(--wit);
+    border:1px solid var(--lijn2);border-radius:14px;overflow:hidden;box-shadow:var(--schaduw)}
+  th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--lijn2);font-size:14px;vertical-align:top}
+  th{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--grijs2);font-weight:650;
+    background:var(--papier)}
   tr:last-child td{border-bottom:0}
   td.num{text-align:right;font-variant-numeric:tabular-nums}
-  .groepkop td{background:#f0f2f6;font-weight:650}
+  .groepkop td{background:#eef0f4;font-weight:650;font-size:13px;letter-spacing:.01em}
 
   .melding{background:var(--oranje-l);border:1px solid #f0dcb8;color:var(--oranje);
-    border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:14px}
-  .laden{color:var(--grijs);font-size:14px;padding:20px 0}
+    border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:14px}
+  .laden{color:var(--grijs2);font-size:14px;padding:26px 0}
 
-  dialog{border:0;border-radius:12px;padding:0;background:#000;max-width:96vw;max-height:96vh}
+  dialog{border:0;border-radius:14px;padding:0;background:#000;max-width:96vw;max-height:96vh}
+  dialog::backdrop{background:rgba(10,11,14,.82)}
   dialog img{max-width:96vw;max-height:90vh;display:block}
-  dialog form{position:absolute;top:8px;right:8px}
-  dialog button{background:rgba(0,0,0,.6);color:#fff;border:0;border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit}
+  dialog form{position:absolute;top:10px;right:10px}
+  dialog button{background:rgba(0,0,0,.55);color:#fff;border:0;border-radius:9px;padding:7px 14px;
+    cursor:pointer;font:inherit;font-size:13px}
+
+  @media (max-width:640px){
+    .cover,.coverleeg{aspect-ratio:16/9}
+    .ikben{margin-left:0;width:100%}
+    .ikben input{flex:1;width:auto}
+  }
 </style>
 </head>
 <body>
@@ -87,16 +126,21 @@
     <p class="prod">Bon Bini — Jetzt Geht's Los</p>
     <h1>Locaties</h1>
     <p>Wat de scout heeft aangedragen, naast wat het script vraagt. Geef per locatie een cijfer en zeg wat je ervan vindt, dan zien we in één oogopslag waar we op uitkomen.</p>
+    <div class="telling" id="telling"></div>
   </div>
 </header>
 
 <div class="balk">
   <div class="wrap">
-    <button class="knop aan" data-tab="kandidaten">Locaties van de scout</button>
-    <button class="knop" data-tab="decors">Wat het script vraagt</button>
-    <button class="knop" data-blok="alles">Alles</button>
-    <button class="knop" data-blok="Nederland">Nederland</button>
-    <button class="knop" data-blok="Oostenrijk">Oostenrijk</button>
+    <div class="groep">
+      <button class="knop aan" data-tab="kandidaten">Van de scout</button>
+      <button class="knop" data-tab="decors">Wat het script vraagt</button>
+    </div>
+    <div class="groep">
+      <button class="knop aan" data-blok="alles">Alles</button>
+      <button class="knop" data-blok="Nederland">Nederland</button>
+      <button class="knop" data-blok="Oostenrijk">Oostenrijk</button>
+    </div>
     <span class="ikben">
       Ik ben <input id="wie" placeholder="je naam" autocomplete="name">
       <input id="afdeling" placeholder="afdeling">
@@ -148,6 +192,7 @@ async function haal() {
     const d = await r.json();
     if (d.fout) throw new Error(d.fout);
     data = d;
+    tellen();
     teken();
   } catch (e) {
     document.getElementById("inhoud").innerHTML =
@@ -155,12 +200,18 @@ async function haal() {
   }
 }
 
-function decorNamen(ids) {
-  return ids.map((id) => (data.decors.find((d) => d.id === id) || {}).decor).filter(Boolean);
+function tellen() {
+  const beoordeeld = new Set(data.reacties.filter((r) => r.cijfer > 0).map((r) => r.kandidaat));
+  const mensen = new Set(data.reacties.map((r) => (r.wie || "").toLowerCase()).filter(Boolean));
+  document.getElementById("telling").innerHTML =
+    "<div><b>" + data.kandidaten.length + "</b>locaties bekeken</div>" +
+    "<div><b>" + beoordeeld.size + "</b>al beoordeeld</div>" +
+    "<div><b>" + data.decors.length + "</b>decors in het script</div>" +
+    "<div><b>" + mensen.size + "</b>mensen reageerden</div>";
 }
 
-function reactiesVan(kandidaatId) {
-  return data.reacties.filter((r) => r.kandidaat === kandidaatId);
+function decorNamen(ids) {
+  return ids.map((id) => (data.decors.find((d) => d.id === id) || {}).decor).filter(Boolean);
 }
 
 function teken() {
@@ -178,43 +229,57 @@ function tekenKandidaten() {
     .filter((k) => blok === "alles" || k.blok === blok)
     .sort((a, b) => (a.blok === b.blok ? a.naam.localeCompare(b.naam, "nl") : a.blok < b.blok ? -1 : 1));
   if (!lijst.length) return '<div class="melding">Geen locaties in dit blok.</div>';
-  const mijn = (wieVeld.value || "").toLowerCase();
 
-  return lijst.map((k) => {
-    const rs = reactiesVan(k.id);
+  const mijn = (wieVeld.value || "").toLowerCase();
+  let uit = "", vorigBlok = "";
+
+  lijst.forEach((k) => {
+    if (k.blok !== vorigBlok) {
+      uit += '<p class="blokkop">' + ontsnap(k.blok) + "</p>";
+      vorigBlok = k.blok;
+    }
+    const rs = data.reacties.filter((r) => r.kandidaat === k.id);
     const cijfers = rs.filter((r) => r.cijfer > 0).map((r) => r.cijfer);
-    const gem = cijfers.length ? (cijfers.reduce((a, b) => a + b, 0) / cijfers.length).toFixed(1) : "—";
+    const gem = cijfers.length ? (cijfers.reduce((a, b) => a + b, 0) / cijfers.length).toFixed(1) : "";
     const eigen = rs.filter((r) => (r.wie || "").toLowerCase() === mijn)[0] || { cijfer: 0, opmerking: "" };
     const voor = decorNamen(k.decors);
 
-    return '<section class="kaart" data-kandidaat="' + k.id + '">' +
+    uit += '<section class="kaart" data-kandidaat="' + k.id + '">' +
+      '<div class="coverplek"><div class="coverleeg">foto\'s laden…</div></div>' +
       '<div class="kop">' +
         "<h2>" + ontsnap(k.naam) + "</h2>" +
         '<span class="chip ' + (k.blok === "Nederland" ? "nl" : "at") + '">' + ontsnap(k.blok) + "</span>" +
         '<span class="chip">' + ontsnap(k.status) + "</span>" +
-        '<span class="score"><b>' + gem + "</b>" + cijfers.length + " reactie" + (cijfers.length === 1 ? "" : "s") + "</span>" +
+        '<span class="score' + (cijfers.length ? "" : " leeg") + '"><b>' + (gem || "—") + "</b>" +
+          (cijfers.length ? cijfers.length + " reactie" + (cijfers.length === 1 ? "" : "s") : "nog geen cijfer") +
+        "</span>" +
       "</div>" +
       '<div class="body">' +
         (voor.length
-          ? '<p class="voor">Voorgesteld voor: <span>' + voor.map(ontsnap).join(", ") + "</span></p>"
-          : '<p class="voor">Nog niet gekoppeld aan een decor.</p>') +
-        (k.adres ? '<p class="voor">Adres: <span>' + ontsnap(k.adres) + "</span></p>" : "") +
+          ? '<p class="meta">Voorgesteld voor <span>' + voor.map(ontsnap).join(", ") + "</span></p>"
+          : '<p class="meta">Nog niet gekoppeld aan een decor</p>') +
+        (k.adres ? '<p class="meta">' + ontsnap(k.adres) + "</p>" : "") +
         (k.notities ? '<p class="notitie">' + ontsnap(k.notities) + "</p>" : "") +
-        '<div class="fotos"></div>' +
+        '<div class="strip"></div>' +
         '<div class="reactie">' +
           '<div class="sterren" data-voor="' + k.id + '">' +
             [1, 2, 3, 4, 5].map((n) =>
-              '<button class="ster' + (n <= eigen.cijfer ? " aan" : "") + '" data-cijfer="' + n + '">&#9733;</button>').join("") +
+              '<button class="ster' + (n <= eigen.cijfer ? " aan" : "") + '" data-cijfer="' + n +
+              '" title="' + n + ' van 5">&#9733;</button>').join("") +
           "</div>" +
           '<textarea placeholder="Wat vind je ervan?">' + ontsnap(eigen.opmerking) + "</textarea>" +
           '<button class="bewaar">Bewaren</button>' +
         "</div>" +
-        (rs.length ? '<div class="gezegd">' + rs.map((r) =>
-          "<div><b>" + ontsnap(r.wie) + (r.afdeling ? " (" + ontsnap(r.afdeling) + ")" : "") + "</b> " +
-          (r.cijfer ? "&#9733;".repeat(r.cijfer) + " " : "") + ontsnap(r.opmerking) + "</div>").join("") + "</div>" : "") +
+        (rs.length
+          ? '<div class="gezegd">' + rs.map((r) =>
+              '<div class="zei"><b>' + ontsnap(r.wie) + (r.afdeling ? " · " + ontsnap(r.afdeling) : "") + "</b> " +
+              (r.cijfer ? '<span class="st">' + "&#9733;".repeat(r.cijfer) + "</span> " : "") +
+              ontsnap(r.opmerking) + "</div>").join("") + "</div>"
+          : "") +
       "</div>" +
     "</section>";
-  }).join("");
+  });
+  return uit;
 }
 
 function tekenDecors() {
@@ -238,9 +303,18 @@ function tekenDecors() {
   return uit + "</table>";
 }
 
+function opener(src) {
+  return () => {
+    const dlg = document.getElementById("groot");
+    dlg.querySelector("img").src = src;
+    dlg.showModal();
+  };
+}
+
 async function laadFotos(kaart) {
   const id = kaart.dataset.kandidaat;
-  const vak = kaart.querySelector(".fotos");
+  const coverplek = kaart.querySelector(".coverplek");
+  const strip = kaart.querySelector(".strip");
   try {
     if (!fotocache[id]) {
       const r = await fetch(api("actie=fotos&kandidaat=" + id));
@@ -248,22 +322,25 @@ async function laadFotos(kaart) {
       fotocache[id] = d.fotos || [];
     }
     const fotos = fotocache[id];
-    if (!fotos.length) { vak.outerHTML = '<p class="meer">Nog geen foto\'s in de map van deze locatie.</p>'; return; }
-    const toon = fotos.slice(0, 12);
-    vak.innerHTML = toon.map((f) =>
-      '<img loading="lazy" alt="" src="' + api("actie=foto&pad=" + encodeURIComponent(f.pad)) +
-      '" data-groot="' + api("actie=groot&pad=" + encodeURIComponent(f.pad)) + '">').join("");
-    if (fotos.length > toon.length) {
-      vak.insertAdjacentHTML("afterend", '<p class="meer">' + (fotos.length - toon.length) +
-        " foto's meer in de Dropbox-map.</p>");
+    if (!fotos.length) {
+      coverplek.innerHTML = '<div class="coverleeg">Nog geen foto\'s in de map van deze locatie</div>';
+      strip.remove();
+      return;
     }
-    vak.querySelectorAll("img").forEach((img) => img.addEventListener("click", () => {
-      const dlg = document.getElementById("groot");
-      dlg.querySelector("img").src = img.dataset.groot;
-      dlg.showModal();
-    }));
+
+    const klein = (p) => api("actie=foto&pad=" + encodeURIComponent(p));
+    const groot = (p) => api("actie=groot&pad=" + encodeURIComponent(p));
+
+    coverplek.innerHTML = '<img class="cover" loading="lazy" alt="" src="' + klein(fotos[0].pad) + '">';
+    coverplek.querySelector("img").addEventListener("click", opener(groot(fotos[0].pad)));
+
+    const rest = fotos.slice(1, 15);
+    strip.innerHTML = rest.map((f) =>
+      '<img loading="lazy" alt="" src="' + klein(f.pad) + '" data-groot="' + groot(f.pad) + '">').join("") +
+      (fotos.length > 15 ? '<div class="rest">nog ' + (fotos.length - 15) + " in Dropbox</div>" : "");
+    strip.querySelectorAll("img").forEach((img) => img.addEventListener("click", opener(img.dataset.groot)));
   } catch (e) {
-    vak.outerHTML = '<p class="meer">Foto\'s niet gelukt: ' + ontsnap(e.message) + "</p>";
+    coverplek.innerHTML = '<div class="coverleeg">Foto\'s niet gelukt: ' + ontsnap(e.message) + "</div>";
   }
 }
 
@@ -280,7 +357,7 @@ function knoppen() {
     const kaart = knop.closest(".kaart");
     const rij = kaart.querySelector(".sterren");
     const wie = wieVeld.value.trim();
-    if (!wie) { toon("Vul eerst je naam in, rechtsboven."); return; }
+    if (!wie) { toon("Vul eerst je naam in, rechtsboven."); wieVeld.focus(); return; }
     knop.disabled = true; knop.textContent = "Bezig…";
     try {
       const r = await fetch(api("actie=reactie"), {
@@ -309,6 +386,7 @@ function knoppen() {
 function toon(tekst) {
   const m = document.getElementById("melding");
   m.innerHTML = '<div class="melding">' + ontsnap(tekst) + "</div>";
+  window.scrollTo({ top: 0, behavior: "smooth" });
   setTimeout(() => { m.innerHTML = ""; }, 4000);
 }
 
