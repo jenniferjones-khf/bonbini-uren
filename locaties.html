@@ -656,12 +656,14 @@ if (!code) {
   function bouw() {
     var h = '<div class="melding" style="margin-bottom:16px">Locatietour Tyrol, 12 tot en met 14 september 2026. ' +
       "Scout Christoph Wurnitsch, chauffeur Andrew Dempsey +43 699 17265413, coordinatie Jennifer Newrkla +43 699 1967 8029. " +
-      "De stops met een oranje balk bekijken we ter plaatse; daaronder staan de scoutopties waar je meteen op kunt reageren.</div>" +
+      "De stops met een oranje balk bekijken we ter plaatse; daaronder staan de scoutopties waar je meteen op kunt reageren. " +
+      "<b>De scenes per stop komen uit de planning zoals die er nu ligt en die gaat nog veranderen.</b> " +
+      "We verwachten nog aanpassingen in het schema, waaronder waarschijnlijk geen slopes voor de stunt.</div>" +
       '<div id="tourkaart" style="height:380px;border:1px solid var(--lijn);border-radius:var(--radius);margin-bottom:8px;background:var(--vlak2)"></div>' +
       '<div class="planregel" style="margin:0 6px 20px">Kaart en satellietbeeld van Esri, rechtsboven te wisselen. Breitlahner Alm staat bij benadering op Dornauberg; het adres is Dornauberg 70 maar dat huisnummer is op de kaart niet te vinden.</div>';
 
     DAGEN.forEach(function (d, di) {
-      h += '<div class="sectie">' + ont(d.dag) + "</div>";
+      h += '<div class="tourdag">' + ont(d.dag) + "</div>";
       h += '<div class="planregel" style="margin:0 6px 12px">' + ont(d.noot) + "</div>";
       STOPS.filter(function (s) { return s[0] === di; }).forEach(function (s) {
         var tijd = s[1], wat = s[2], plek = s[3], adres = s[4], lat = s[5], lon = s[6], bezoek = s[7], decors = s[8], kand = s[9];
@@ -761,6 +763,8 @@ if (!code) {
     var s = document.createElement("style");
     s.id = "tourstijl";
     s.textContent =
+      ".tourdag{margin:38px 0 0;padding:11px 14px;background:var(--accent);color:var(--accentTekst);border-radius:8px;font:700 15px var(--display);letter-spacing:.02em}" +
+      ".tourdag + .planregel{margin:8px 6px 14px}" +
       ".tourstop{padding:10px 0 2px;border-top:1px solid var(--lijn);margin-top:10px}" +
       '.tourstop[data-bezoek="1"]{border-left:3px solid var(--accent);padding-left:12px;border-top-left-radius:8px}' +
       ".tourkop{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}" +
@@ -769,7 +773,8 @@ if (!code) {
       ".touradres{font:400 12px var(--mono);color:var(--zacht2)}" +
       ".touropties{margin-top:10px}" +
       ".touropties .vel{margin-bottom:10px}" +
-      "@media(max-width:560px){.tourkop{gap:4px}.tourtijd{min-width:0}}";
+      "@media(max-width:560px){.tourkop{gap:2px}.tourtijd{min-width:0}.tourstop[data-bezoek=\"1\"]{padding-left:8px}#tourkaart{height:300px}.touropties .vel{margin-bottom:14px}}" +
+      "html.alleentour .pillen{display:none}";
     document.head.appendChild(s);
   }
 
@@ -786,6 +791,19 @@ if (!code) {
     knop.setAttribute("data-tour", "1");
     knop.textContent = "Locatiebezoek Oostenrijk";
     rij.appendChild(knop);
+
+    /* ?tour=1 opent alleen dit tabblad en verbergt de andere. */
+    var alleen = false;
+    try { alleen = new URLSearchParams(location.search).get("tour") === "1"; } catch (e) {}
+    if (alleen) {
+      document.documentElement.classList.add("alleentour");
+      var wacht = setInterval(function () {
+        var klaar = false;
+        try { klaar = !!(data && data.planning && data.planning.length && data.kandidaten); } catch (e) {}
+        if (klaar) { clearInterval(wacht); knop.click(); }
+      }, 150);
+      setTimeout(function () { clearInterval(wacht); }, 20000);
+    }
 
     knop.addEventListener("click", function (e) {
       e.stopPropagation();
