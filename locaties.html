@@ -576,77 +576,210 @@ if (!code) {
      Bron: Dispo_Location Tour_Bon Bini_11 - 14 September 2026.pdf, Jennifer Newrkla, Lemonpie. -->
 <script>
 (function () {
-  var TOUR = [
-    { dag: "Zaterdag 12 september", noot: "Aankomst München 11:05. Karina, Jennifer en Jürgen komen per trein uit Wenen naar Jenbach, 12:44. Overnachting Hotel Neue Post, Mayrhofen.", regels: [
-      ["11:05", "Aankomst München Airport", "Munich Airport", "Nordallee 25, 85356 Oberding", ""],
-      ["11:30-14:30", "Rijden naar de Grieralm", "", "", ""],
-      ["14:30-15:30", "Lunch op de Grieralm", "Grieralm", "Juns 529, 6293 Tux", ""],
-      ["15:30-18:00", "F.C. Kip hut 1 en mogelijke pistes", "Grieralm", "Juns 529, 6293 Tux", "Griealm, nieuwe foto's"],
-      ["18:15-19:00", "Mogelijke pistes", "Tuxer Gletscher", "6293 Tux", "Tuxer Gletscher, pistes"],
-      ["19:00-19:30", "Rijden naar het hotel", "", "", ""],
-      ["19:30", "Check-in", "Hotel Neue Post", "Hauptstraße 400, 6290 Mayrhofen", ""],
-      ["20:00", "Diner in het hotel", "", "", ""]
-    ]},
-    { dag: "Zondag 13 september", noot: "Lange dag: acht stops en aan het eind twee uur rijden naar Fiss. Jennifer vertrekt 06:30 voor de trein van 08:20 uit Innsbruck.", regels: [
-      ["08:30", "Check-out", "Hotel Neue Post", "Hauptstraße 400, 6290 Mayrhofen", ""],
-      ["08:30-09:15", "Village 1", "Mayrhofen", "6290 Mayrhofen", "Mayrhofen 630m"],
-      ["09:15-09:35", "Rijden naar Ginzling", "", "", ""],
-      ["09:35-10:00", "Village 2 en piste", "Ginzling", "6295 Ginzling", "Ginzling 1000m"],
-      ["10:15-11:15", "F.C. Kip hut en pistes", "Breitlahner Alm", "Dornauberg 70, 6295 Ginzling", "Breitlahner Alm 1250m"],
-      ["11:15-12:15", "Rijden naar Gerlos", "", "", ""],
-      ["12:15-12:45", "Village 3", "Gerlos", "6281 Gerlos", "Gerlos 1250m"],
-      ["12:45-13:45", "Lunch in Gerlos", "Gerlos", "6281 Gerlos, plek nog te bepalen", ""],
-      ["14:00-14:30", "Hotel 1", "Traumhotel Alpina", "Gerlos 298, 6281 Gerlos", "Hotel Alpina"],
-      ["15:00-15:30", "Hotel 2", "Zillergrund Rock", "Zillergrund 903, 6290 Mayrhofen", "Zillergrund Rock"],
-      ["15:45-16:15", "Hotel 3", "Sonnenhof", "Rohrerstraße 47, 6280 Zell am Ziller", "Sonnenhof, Zell am Ziller"],
-      ["16:15-18:15", "Rijden van het Zillertal naar Fiss", "", "6533 Fiss", ""],
-      ["18:15", "Check-in", "Das Naturjuwel", "Via-Claudia-Augusta 44, 6533 Fiss", ""],
-      ["19:00", "Diner in het hotel", "", "", ""]
-    ]},
-    { dag: "Maandag 14 september", noot: "Korte ochtend, daarna terug naar München voor de vlucht van 17:45.", regels: [
-      ["07:50", "Check-out", "Das Naturjuwel", "Via-Claudia-Augusta 44, 6533 Fiss", ""],
-      ["08:00-08:20", "Hotel 4", "Schlosshotel Fiss", "Laurschweg 28, 6533 Fiss", "Schlosshotel Fiss"],
-      ["08:30-08:50", "Hotel 5", "Hotel Schalber", "Dorfbahnstraße 15, 6534 Serfaus", "Hotel Schalber, Serfaus"],
-      ["08:50-11:30", "Backup-dorpen", "Fiss, Ladis, Serfaus en Nauders", "Adres nog te bepalen", "Nauders, dorp en skigebied"],
-      ["11:30-16:00", "Rijden naar München Airport", "", "Nordallee 25, 85356 Oberding", ""],
-      ["17:45", "Vlucht KL1856 vertrekt München", "", "", ""]
-    ]}
+  /* Locatiebezoek Oostenrijk, 12 tot en met 14 september 2026.
+     Bron: Dispo_Location Tour_Bon Bini_11 - 14 September 2026.pdf, Jennifer Newrkla, Lemonpie, 10 september. */
+
+  var DAGEN = [
+    { dag: "Zaterdag 12 september", noot: "Aankomst Munchen 11:05. Karina, Jennifer en Jurgen komen per trein uit Wenen naar Jenbach, 12:44. Overnachting Hotel Neue Post in Mayrhofen." },
+    { dag: "Zondag 13 september", noot: "Acht stops en aan het eind twee uur rijden naar Fiss. Jennifer vertrekt 06:30 voor de trein van 08:20 uit Innsbruck." },
+    { dag: "Maandag 14 september", noot: "Korte ochtend, daarna terug naar Munchen voor de vlucht van 17:45." }
   ];
 
+  /* tijd, wat, plek, adres, lat, lon, bezoek, decors, kandidaten */
+  var STOPS = [
+    [0, "11:05", "Aankomst Munchen Airport", "Munich Airport", "Nordallee 25, 85356 Oberding", 48.35396, 11.77859, false, [], []],
+    [0, "11:30-14:30", "Rijden naar de Grieralm", "", "", null, null, false, [], []],
+    [0, "14:30-15:30", "Lunch op de Grieralm", "Grieralm", "Juns 529, 6293 Tux", null, null, false, [], []],
+    [0, "15:30-18:00", "F.C. Kip hut 1 en mogelijke pistes", "Grieralm", "Juns 529, 6293 Tux", 47.12218, 11.70693, true, ["FC Kip Austria"], ["Griealm, nieuwe foto's"]],
+    [0, "18:15-19:00", "Mogelijke pistes", "Tuxer Gletscher", "6293 Tux", 47.10906, 11.67486, true, ["Ski Slope"], ["Tuxer Gletscher, pistes"]],
+    [0, "19:00-19:30", "Rijden naar het hotel", "", "", null, null, false, [], []],
+    [0, "19:30", "Check-in en diner", "Hotel Neue Post", "Hauptstrasse 400, 6290 Mayrhofen", 47.1691, 11.8648, false, [], []],
+
+    [1, "08:30", "Check-out", "Hotel Neue Post", "Hauptstrasse 400, 6290 Mayrhofen", null, null, false, [], []],
+    [1, "08:30-09:15", "Village 1", "Mayrhofen", "6290 Mayrhofen", 47.16722, 11.86387, true, ["Austrian Ski Village"], ["Mayrhofen 630m"]],
+    [1, "09:15-09:35", "Rijden naar Ginzling", "", "", null, null, false, [], []],
+    [1, "09:35-10:00", "Village 2 en piste", "Ginzling", "6295 Ginzling", 47.10032, 11.80904, true, ["Austrian Ski Village", "Ski Slope"], ["Ginzling 1000m"]],
+    [1, "10:15-11:15", "F.C. Kip hut en pistes", "Breitlahner Alm", "Dornauberg 70, 6295 Ginzling", 47.09994, 11.80742, true, ["FC Kip Austria", "Ski Slope"], ["Breitlahner Alm 1250m"]],
+    [1, "11:15-12:15", "Rijden naar Gerlos", "", "", null, null, false, [], []],
+    [1, "12:15-12:45", "Village 3", "Gerlos", "6281 Gerlos", 47.2095, 12.03749, true, ["Austrian Ski Village"], ["Gerlos 1250m"]],
+    [1, "12:45-13:45", "Lunch in Gerlos", "Gerlos", "6281 Gerlos, plek nog te bepalen", null, null, false, [], []],
+    [1, "14:00-14:30", "Hotel 1", "Traumhotel Alpina", "Gerlos 298, 6281 Gerlos", 47.22353, 12.03023, true, ["Almhof Hotel AT"], ["Hotel Alpina"]],
+    [1, "15:00-15:30", "Hotel 2", "Zillergrund Rock", "Zillergrund 903, 6290 Mayrhofen", 47.15909, 11.88106, true, ["Almhof Hotel AT"], ["Zillergrund Rock"]],
+    [1, "15:45-16:15", "Hotel 3", "Sonnenhof", "Rohrerstrasse 47, 6280 Zell am Ziller", 47.23691, 11.89396, true, ["Almhof Hotel AT"], ["Sonnenhof, Zell am Ziller"]],
+    [1, "16:15-18:15", "Rijden van het Zillertal naar Fiss", "", "6533 Fiss", null, null, false, [], []],
+    [1, "18:15", "Check-in en diner", "Das Naturjuwel", "Via-Claudia-Augusta 44, 6533 Fiss", 47.05547, 10.61653, false, [], []],
+
+    [2, "07:50", "Check-out", "Das Naturjuwel", "Via-Claudia-Augusta 44, 6533 Fiss", null, null, false, [], []],
+    [2, "08:00-08:20", "Hotel 4", "Schlosshotel Fiss", "Laurschweg 28, 6533 Fiss", 47.05543, 10.61016, true, ["Almhof Hotel AT"], ["Schlosshotel Fiss"]],
+    [2, "08:30-08:50", "Hotel 5", "Hotel Schalber", "Dorfbahnstrasse 15, 6534 Serfaus", 47.03752, 10.6121, true, ["Almhof Hotel AT"], ["Hotel Schalber, Serfaus"]],
+    [2, "08:50-11:30", "Backup-dorpen", "Fiss, Ladis, Serfaus en Nauders", "Speld staat op Nauders", 46.88731, 10.53978, true, ["Austrian Ski Village", "Austrian Ski Village - Town Hall"], ["Nauders, dorp en skigebied", "Nauders, town hall", "Nauders, Hotel Post", "Nauders, Hotel Naudererhof", "Nauders, Hotel Gerstl Reschensee", "Nauders, Hotel Suites by Almenhof", "Serfaus-Fiss-Ladis (PDF-voorstel)"]],
+    [2, "11:30-16:00", "Rijden naar Munchen Airport", "", "Nordallee 25, 85356 Oberding", null, null, false, [], []],
+    [2, "17:45", "Vlucht KL1856 vertrekt Munchen", "", "", null, null, false, [], []]
+  ];
+
+  var LEAFLET_CSS = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";
+  var LEAFLET_JS = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
+  var kaart = null;
+
   function ont(t) {
-    return String(t == null ? "" : t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    return String(t == null ? "" : t)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  function maps(s) {
+    return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(s);
+  }
+
+  /* De scenes van de decors waar deze stop voor in beeld is, per draaidag. */
+  function scenesVoor(decors) {
+    if (!decors.length || !window.data || !data.planning) return "";
+    var rijen = data.planning.filter(function (p) { return decors.indexOf(p.decor) > -1; });
+    if (!rijen.length) return "";
+    var perDag = [];
+    rijen.forEach(function (sc) {
+      var l = perDag[perDag.length - 1];
+      if (l && l.dag === sc.dag) l.scenes.push(sc); else perDag.push({ dag: sc.dag, datum: sc.datum, scenes: [sc] });
+    });
+    var uniek = {};
+    rijen.forEach(function (r) { uniek[String(r.scene).replace(/[A-Za-z]+$/, "")] = 1; });
+    var n = Object.keys(uniek).length;
+    return '<div class="planregel"><b>' + n + (n === 1 ? " scene" : " scenes") + "</b> in " + ont(decors.join(" en ")) +
+      " <i>ga op een scene staan om te lezen waar die over gaat</i>" +
+      perDag.map(function (d) {
+        return '<span class="dagrij"><span class="dagnaam' + (d.dag ? "" : " nogniet") + '">' +
+          ont(d.dag ? "Draaidag " + d.dag : "Nog niet ingepland") +
+          (d.datum ? " &middot; " + ont(kortDatum(d.datum)) : "") + "</span>" +
+          d.scenes.map(sceneChip).join("") + "</span>";
+      }).join("") + "</div>";
   }
 
   function bouw() {
     var h = '<div class="melding" style="margin-bottom:16px">Locatietour Tyrol, 12 tot en met 14 september 2026. ' +
-      'Bron: de dispo van Jennifer Newrkla (Lemonpie) van 10 september. Scout Christoph Wurnitsch, chauffeur Andrew Dempsey +43 699 17265413, ' +
-      'coördinatie Jennifer Newrkla +43 699 1967 8029. De vetgedrukte regels zijn de locaties die we bekijken, de rest is reizen, eten en slapen.</div>';
-    TOUR.forEach(function (d) {
+      "Scout Christoph Wurnitsch, chauffeur Andrew Dempsey +43 699 17265413, coordinatie Jennifer Newrkla +43 699 1967 8029. " +
+      "De stops met een oranje balk bekijken we ter plaatse; daaronder staan de scoutopties waar je meteen op kunt reageren.</div>" +
+      '<div id="tourkaart" style="height:380px;border:1px solid var(--lijn);border-radius:var(--radius);margin-bottom:8px;background:var(--vlak2)"></div>' +
+      '<div class="planregel" style="margin:0 6px 20px">Kaart op OpenStreetMap. Breitlahner Alm staat bij benadering op Dornauberg; het adres is Dornauberg 70 maar dat huisnummer is op de kaart niet te vinden.</div>';
+
+    DAGEN.forEach(function (d, di) {
       h += '<div class="sectie">' + ont(d.dag) + "</div>";
-      if (d.noot) h += '<div class="planregel" style="margin:0 6px 10px">' + ont(d.noot) + "</div>";
-      h += '<div class="tabelwrap"><table><thead><tr><th>Tijd</th><th>Wat</th><th>Locatie</th><th>Adres</th><th>In de lijst hierboven</th></tr></thead><tbody>';
-      d.regels.forEach(function (r) {
-        var kijk = !!r[4];
-        h += "<tr><td>" + ont(r[0]) + "</td><td>" + (kijk ? "<b>" + ont(r[1]) + "</b>" : ont(r[1])) +
-          "</td><td>" + ont(r[2]) + "</td><td>" + ont(r[3]) + "</td><td>" + ont(r[4]) + "</td></tr>";
+      h += '<div class="planregel" style="margin:0 6px 12px">' + ont(d.noot) + "</div>";
+      STOPS.filter(function (s) { return s[0] === di; }).forEach(function (s) {
+        var tijd = s[1], wat = s[2], plek = s[3], adres = s[4], lat = s[5], lon = s[6], bezoek = s[7], decors = s[8], kand = s[9];
+        h += '<div class="tourstop" data-bezoek="' + (bezoek ? "1" : "0") + '">' +
+          '<div class="tourkop"><span class="tourtijd">' + ont(tijd) + "</span>" +
+          "<span><b>" + ont(wat) + "</b>" + (plek ? " &middot; " + ont(plek) : "") +
+          (adres ? '<br><span class="touradres">' + ont(adres) +
+            (lat ? ' &middot; <a href="' + maps(lat + "," + lon) + '" target="_blank" rel="noopener">open in Google Maps</a>' : "") +
+            "</span>" : "") +
+          "</span></div>";
+        if (bezoek) {
+          h += scenesVoor(decors);
+          h += '<div class="touropties" data-kandidaten="' + ont(kand.join("|")) + '"></div>';
+        }
+        h += "</div>";
       });
-      h += "</tbody></table></div>";
     });
-    h += '<div class="planregel" style="margin-top:18px">Twaalf locaties in drie dagen. Alles staat ook als kandidaat in het eerste tabblad: ' +
-      'de hotels onder Almhof Hotel AT, de dorpen en pistes voorlopig onder Nog niet gekoppeld aan een decor.</div>';
     return h;
+  }
+
+  function vulOpties(wortel) {
+    var tmp = document.createElement("div");
+    var oudBlok = blok;
+    blok = "alles";
+    try { tmp.innerHTML = tekenVellen(); } finally { blok = oudBlok; }
+    var perNaam = {};
+    [].forEach.call(tmp.querySelectorAll(".vel"), function (v) {
+      var kop = v.querySelector("h2");
+      if (kop) perNaam[kop.textContent.trim()] = v;
+    });
+    [].forEach.call(wortel.querySelectorAll(".touropties"), function (vak) {
+      var namen = (vak.getAttribute("data-kandidaten") || "").split("|").filter(Boolean);
+      var mis = [];
+      namen.forEach(function (n) {
+        if (perNaam[n]) vak.appendChild(perNaam[n].cloneNode(true));
+        else mis.push(n);
+      });
+      if (mis.length) vak.insertAdjacentHTML("beforeend", '<p class="planregel">Niet gevonden in de kandidatenlijst: ' + ont(mis.join(", ")) + "</p>");
+    });
+    [].forEach.call(wortel.querySelectorAll(".vel"), function (v) { laadFotos(v); });
+    knoppen();
+  }
+
+  function tekenKaart() {
+    var vak = document.getElementById("tourkaart");
+    if (!vak || !window.L) return;
+    if (kaart) { kaart.remove(); kaart = null; }
+    kaart = L.map(vak, { scrollWheelZoom: false });
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 17, attribution: "&copy; OpenStreetMap"
+    }).addTo(kaart);
+    var punten = [], nr = 0;
+    STOPS.forEach(function (s) {
+      if (s[5] == null) return;
+      var bezoek = s[7];
+      if (bezoek) nr++;
+      var label = bezoek ? String(nr) : "·";
+      var kleur = bezoek ? "#A4491C" : "#6B7280";
+      var icoon = L.divIcon({
+        className: "",
+        html: '<div style="background:' + kleur + ';color:#fff;width:26px;height:26px;border-radius:50%;display:flex;' +
+          'align-items:center;justify-content:center;font:600 12px system-ui;box-shadow:0 1px 4px rgba(0,0,0,.4)">' + label + "</div>",
+        iconSize: [26, 26], iconAnchor: [13, 13]
+      });
+      var m = L.marker([s[5], s[6]], { icon: icoon }).addTo(kaart);
+      m.bindPopup("<b>" + ont(s[3] || s[2]) + "</b><br>" + ont(s[1]) + "<br>" + ont(s[4]) +
+        '<br><a href="' + maps(s[5] + "," + s[6]) + '" target="_blank" rel="noopener">open in Google Maps</a>');
+      punten.push([s[5], s[6]]);
+    });
+    if (punten.length) kaart.fitBounds(punten, { padding: [30, 30] });
+    setTimeout(function () { kaart.invalidateSize(); }, 150);
+  }
+
+  function laadKaart() {
+    if (window.L) { tekenKaart(); return; }
+    if (!document.getElementById("leaflet-css")) {
+      var css = document.createElement("link");
+      css.id = "leaflet-css"; css.rel = "stylesheet"; css.href = LEAFLET_CSS;
+      document.head.appendChild(css);
+    }
+    var js = document.createElement("script");
+    js.src = LEAFLET_JS;
+    js.onload = tekenKaart;
+    js.onerror = function () {
+      var vak = document.getElementById("tourkaart");
+      if (vak) vak.innerHTML = '<p class="planregel" style="padding:16px">De kaart kon niet laden. De adressen en de Google Maps-knoppen hieronder werken wel.</p>';
+    };
+    document.head.appendChild(js);
+  }
+
+  function stijl() {
+    if (document.getElementById("tourstijl")) return;
+    var s = document.createElement("style");
+    s.id = "tourstijl";
+    s.textContent =
+      ".tourstop{padding:10px 0 2px;border-top:1px solid var(--lijn);margin-top:10px}" +
+      '.tourstop[data-bezoek="1"]{border-left:3px solid var(--accent);padding-left:12px;border-top-left-radius:8px}' +
+      ".tourkop{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}" +
+      ".tourtijd{font:500 12.5px var(--mono);color:var(--zacht);min-width:92px;white-space:nowrap}" +
+      '.tourstop[data-bezoek="1"] .tourtijd{color:var(--accent)}' +
+      ".touradres{font:400 12px var(--mono);color:var(--zacht2)}" +
+      ".touropties{margin-top:10px}" +
+      ".touropties .vel{margin-bottom:10px}" +
+      "@media(max-width:560px){.tourkop{gap:4px}.tourtijd{min-width:0}}";
+    document.head.appendChild(s);
   }
 
   function start() {
     var rij = document.querySelector(".pillen");
     var inhoud = document.getElementById("inhoud");
     if (!rij || !inhoud) return;
-    if (rij.querySelector("[data-bezoek]")) return;
+    if (rij.querySelector("[data-tour]")) return;
+    stijl();
 
     var knop = document.createElement("button");
     knop.type = "button";
     knop.className = "pil";
-    knop.setAttribute("data-bezoek", "1");
+    knop.setAttribute("data-tour", "1");
     knop.textContent = "Locatiebezoek Oostenrijk";
     rij.appendChild(knop);
 
@@ -655,19 +788,23 @@ if (!code) {
       var pillen = rij.querySelectorAll(".pil");
       for (var i = 0; i < pillen.length; i++) pillen[i].classList.remove("aan");
       knop.classList.add("aan");
+      inhoud.className = "";
       inhoud.innerHTML = bouw();
+      vulOpties(inhoud);
+      laadKaart();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }, true);
 
     rij.addEventListener("click", function (e) {
       var p = e.target.closest ? e.target.closest(".pil") : null;
-      if (p && p !== knop) knop.classList.remove("aan");
+      if (p && p !== knop) { knop.classList.remove("aan"); kaart = null; }
     });
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
   else start();
 })();
+
 </script>
 </body>
 </html>
