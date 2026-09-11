@@ -26,6 +26,7 @@ const F = {
   crewOpCallsheet: "fldB2LljUvMl7OOrF",
   eraf: "fldl49e40hA0LnwF9",
   startmailWeek: "fldDtc4DDKdqjEBxR",
+  herinneringWeek: "fldmPTe2fTgX5OUmU",
   email: "fldClEi5WxnJfpmFI",
   naam: "fldypfInaNvNURVID",
   voornaam: "fldx9Z5jB6cx4gc8W",
@@ -158,11 +159,12 @@ export async function verwerk(peilOverride?: string, droog = false) {
   // Slot tegen een dubbele mail. Netlify garandeert dat een geplande functie minstens
   // een keer draait, niet hoogstens een keer. Draait de ochtendrun twee keer, dan zou
   // het vinkje twee keer aangaan en gaat de mail twee keer de deur uit. Daarom houden
-  // we per crewlid bij voor welke week de startmail al verstuurd is.
+  // we per crewlid bij voor welke week de startmail en de herinnering al aan zijn gezet.
   const namen: string[] = [];
   const overgeslagen: string[] = [];
   for (const c of kiezen) {
     const velden: any = {};
+
     if (start) {
       if (String(c.fields[F.startmailWeek] || "") === week) {
         overgeslagen.push(String(c.fields[F.naam] || c.id));
@@ -171,7 +173,20 @@ export async function verwerk(peilOverride?: string, droog = false) {
       velden[F.startmail] = true;
       velden[F.startmailWeek] = week;
     }
-    if (einde) velden[F.herinnering] = true;
+
+    // Bewust geen continue in deze tak: op een dag die tegelijk eerste en laatste
+    // draaidag is zou dat de hierboven al gezette startmail-velden overslaan.
+    if (einde && String(c.fields[F.herinneringWeek] || "") !== week) {
+      velden[F.herinnering] = true;
+      velden[F.herinneringWeek] = week;
+    }
+
+    // Niets te zetten betekent: alles voor deze week stond al aan.
+    if (Object.keys(velden).length === 0) {
+      overgeslagen.push(String(c.fields[F.naam] || c.id));
+      continue;
+    }
+
     if (!droog) await at("/" + T_CREW + "/" + c.id, { method: "PATCH", body: JSON.stringify({ fields: velden, typecast: true }) });
     namen.push(String(c.fields[F.naam] || c.id));
   }
