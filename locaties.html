@@ -658,7 +658,7 @@ if (!code) {
       "Scout Christoph Wurnitsch, chauffeur Andrew Dempsey +43 699 17265413, coordinatie Jennifer Newrkla +43 699 1967 8029. " +
       "De stops met een oranje balk bekijken we ter plaatse; daaronder staan de scoutopties waar je meteen op kunt reageren.</div>" +
       '<div id="tourkaart" style="height:380px;border:1px solid var(--lijn);border-radius:var(--radius);margin-bottom:8px;background:var(--vlak2)"></div>' +
-      '<div class="planregel" style="margin:0 6px 20px">Kaart op OpenStreetMap. Breitlahner Alm staat bij benadering op Dornauberg; het adres is Dornauberg 70 maar dat huisnummer is op de kaart niet te vinden.</div>';
+      '<div class="planregel" style="margin:0 6px 20px">Kaart en satellietbeeld van Esri, rechtsboven te wisselen. Breitlahner Alm staat bij benadering op Dornauberg; het adres is Dornauberg 70 maar dat huisnummer is op de kaart niet te vinden.</div>';
 
     DAGEN.forEach(function (d, di) {
       h += '<div class="sectie">' + ont(d.dag) + "</div>";
@@ -710,9 +710,13 @@ if (!code) {
     if (!vak || !window.L) return;
     if (kaart) { kaart.remove(); kaart = null; }
     kaart = L.map(vak, { scrollWheelZoom: false });
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 17, attribution: "&copy; OpenStreetMap"
+    var topo = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}", {
+      maxZoom: 17, attribution: "Esri, FAO, NOAA"
     }).addTo(kaart);
+    var sat = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+      maxZoom: 17, attribution: "Esri, Maxar, Earthstar Geographics"
+    });
+    L.control.layers({ "Kaart": topo, "Satelliet": sat }, null, { collapsed: false }).addTo(kaart);
     var punten = [], nr = 0;
     STOPS.forEach(function (s) {
       if (s[5] == null) return;
