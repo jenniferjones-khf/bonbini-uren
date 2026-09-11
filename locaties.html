@@ -572,5 +572,102 @@ if (!code) {
   haal();
 }
 </script>
+<!-- Tabblad Locatiebezoek Oostenrijk, 11 september 2026.
+     Bron: Dispo_Location Tour_Bon Bini_11 - 14 September 2026.pdf, Jennifer Newrkla, Lemonpie. -->
+<script>
+(function () {
+  var TOUR = [
+    { dag: "Zaterdag 12 september", noot: "Aankomst München 11:05. Karina, Jennifer en Jürgen komen per trein uit Wenen naar Jenbach, 12:44. Overnachting Hotel Neue Post, Mayrhofen.", regels: [
+      ["11:05", "Aankomst München Airport", "Munich Airport", "Nordallee 25, 85356 Oberding", ""],
+      ["11:30-14:30", "Rijden naar de Grieralm", "", "", ""],
+      ["14:30-15:30", "Lunch op de Grieralm", "Grieralm", "Juns 529, 6293 Tux", ""],
+      ["15:30-18:00", "F.C. Kip hut 1 en mogelijke pistes", "Grieralm", "Juns 529, 6293 Tux", "Griealm, nieuwe foto's"],
+      ["18:15-19:00", "Mogelijke pistes", "Tuxer Gletscher", "6293 Tux", "Tuxer Gletscher, pistes"],
+      ["19:00-19:30", "Rijden naar het hotel", "", "", ""],
+      ["19:30", "Check-in", "Hotel Neue Post", "Hauptstraße 400, 6290 Mayrhofen", ""],
+      ["20:00", "Diner in het hotel", "", "", ""]
+    ]},
+    { dag: "Zondag 13 september", noot: "Lange dag: acht stops en aan het eind twee uur rijden naar Fiss. Jennifer vertrekt 06:30 voor de trein van 08:20 uit Innsbruck.", regels: [
+      ["08:30", "Check-out", "Hotel Neue Post", "Hauptstraße 400, 6290 Mayrhofen", ""],
+      ["08:30-09:15", "Village 1", "Mayrhofen", "6290 Mayrhofen", "Mayrhofen 630m"],
+      ["09:15-09:35", "Rijden naar Ginzling", "", "", ""],
+      ["09:35-10:00", "Village 2 en piste", "Ginzling", "6295 Ginzling", "Ginzling 1000m"],
+      ["10:15-11:15", "F.C. Kip hut en pistes", "Breitlahner Alm", "Dornauberg 70, 6295 Ginzling", "Breitlahner Alm 1250m"],
+      ["11:15-12:15", "Rijden naar Gerlos", "", "", ""],
+      ["12:15-12:45", "Village 3", "Gerlos", "6281 Gerlos", "Gerlos 1250m"],
+      ["12:45-13:45", "Lunch in Gerlos", "Gerlos", "6281 Gerlos, plek nog te bepalen", ""],
+      ["14:00-14:30", "Hotel 1", "Traumhotel Alpina", "Gerlos 298, 6281 Gerlos", "Hotel Alpina"],
+      ["15:00-15:30", "Hotel 2", "Zillergrund Rock", "Zillergrund 903, 6290 Mayrhofen", "Zillergrund Rock"],
+      ["15:45-16:15", "Hotel 3", "Sonnenhof", "Rohrerstraße 47, 6280 Zell am Ziller", "Sonnenhof, Zell am Ziller"],
+      ["16:15-18:15", "Rijden van het Zillertal naar Fiss", "", "6533 Fiss", ""],
+      ["18:15", "Check-in", "Das Naturjuwel", "Via-Claudia-Augusta 44, 6533 Fiss", ""],
+      ["19:00", "Diner in het hotel", "", "", ""]
+    ]},
+    { dag: "Maandag 14 september", noot: "Korte ochtend, daarna terug naar München voor de vlucht van 17:45.", regels: [
+      ["07:50", "Check-out", "Das Naturjuwel", "Via-Claudia-Augusta 44, 6533 Fiss", ""],
+      ["08:00-08:20", "Hotel 4", "Schlosshotel Fiss", "Laurschweg 28, 6533 Fiss", "Schlosshotel Fiss"],
+      ["08:30-08:50", "Hotel 5", "Hotel Schalber", "Dorfbahnstraße 15, 6534 Serfaus", "Hotel Schalber, Serfaus"],
+      ["08:50-11:30", "Backup-dorpen", "Fiss, Ladis, Serfaus en Nauders", "Adres nog te bepalen", "Nauders, dorp en skigebied"],
+      ["11:30-16:00", "Rijden naar München Airport", "", "Nordallee 25, 85356 Oberding", ""],
+      ["17:45", "Vlucht KL1856 vertrekt München", "", "", ""]
+    ]}
+  ];
+
+  function ont(t) {
+    return String(t == null ? "" : t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  function bouw() {
+    var h = '<div class="melding" style="margin-bottom:16px">Locatietour Tyrol, 12 tot en met 14 september 2026. ' +
+      'Bron: de dispo van Jennifer Newrkla (Lemonpie) van 10 september. Scout Christoph Wurnitsch, chauffeur Andrew Dempsey +43 699 17265413, ' +
+      'coördinatie Jennifer Newrkla +43 699 1967 8029. De vetgedrukte regels zijn de locaties die we bekijken, de rest is reizen, eten en slapen.</div>';
+    TOUR.forEach(function (d) {
+      h += '<div class="sectie">' + ont(d.dag) + "</div>";
+      if (d.noot) h += '<div class="planregel" style="margin:0 6px 10px">' + ont(d.noot) + "</div>";
+      h += '<div class="tabelwrap"><table><thead><tr><th>Tijd</th><th>Wat</th><th>Locatie</th><th>Adres</th><th>In de lijst hierboven</th></tr></thead><tbody>';
+      d.regels.forEach(function (r) {
+        var kijk = !!r[4];
+        h += "<tr><td>" + ont(r[0]) + "</td><td>" + (kijk ? "<b>" + ont(r[1]) + "</b>" : ont(r[1])) +
+          "</td><td>" + ont(r[2]) + "</td><td>" + ont(r[3]) + "</td><td>" + ont(r[4]) + "</td></tr>";
+      });
+      h += "</tbody></table></div>";
+    });
+    h += '<div class="planregel" style="margin-top:18px">Twaalf locaties in drie dagen. Alles staat ook als kandidaat in het eerste tabblad: ' +
+      'de hotels onder Almhof Hotel AT, de dorpen en pistes voorlopig onder Nog niet gekoppeld aan een decor.</div>';
+    return h;
+  }
+
+  function start() {
+    var rij = document.querySelector(".pillen");
+    var inhoud = document.getElementById("inhoud");
+    if (!rij || !inhoud) return;
+    if (rij.querySelector("[data-bezoek]")) return;
+
+    var knop = document.createElement("button");
+    knop.type = "button";
+    knop.className = "pil";
+    knop.setAttribute("data-bezoek", "1");
+    knop.textContent = "Locatiebezoek Oostenrijk";
+    rij.appendChild(knop);
+
+    knop.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var pillen = rij.querySelectorAll(".pil");
+      for (var i = 0; i < pillen.length; i++) pillen[i].classList.remove("aan");
+      knop.classList.add("aan");
+      inhoud.innerHTML = bouw();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }, true);
+
+    rij.addEventListener("click", function (e) {
+      var p = e.target.closest ? e.target.closest(".pil") : null;
+      if (p && p !== knop) knop.classList.remove("aan");
+    });
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
+  else start();
+})();
+</script>
 </body>
 </html>
