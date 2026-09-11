@@ -431,16 +431,32 @@ export async function verwerk() {
     }
 
     const f = velden(p, b.rev, vandaag);
+
+    // Schrijven gaat via een upsert op de datum, niet via eerst zoeken en dan aanmaken.
+    // Airtable beslist zelf of het bijwerken of aanmaken wordt, in een enkele aanroep.
+    // Dat is nodig omdat Netlify garandeert dat een geplande functie MINSTENS een keer
+    // draait, niet hoogstens een keer. Bij twee runs tegelijk zag de oude code in beide
+    // runs nog geen regel voor die datum en maakte allebei een nieuwe aan; op
+    // 1 september leverde dat twee draaidagen op voor 8 en voor 9 september. Met een
+    // upsert kan dat niet meer: de tweede run werkt dezelfde regel bij.
+    const antwoord: any = await at("/" + T_DAG + "?returnFieldsByFieldId=true", {
+      method: "PATCH",
+      body: JSON.stringify({
+        performUpsert: { fieldsToMergeOn: [F.datum] },
+        records: [{ fields: f }],
+        typecast: true,
+      }),
+    });
+
+    // De lijst in het geheugen meteen bijwerken. Voor sommige draaidagen staat er meer
+    // dan een callsheet in de map (bijvoorbeeld een aparte versie voor een kindacteur);
+    // zonder dit zou het vangnet voor set- en hoteladres die tweede niet meenemen.
     const opDatum = bestaand.filter((r: any) => r.fields[F.datum] === p.datum)[0];
     if (opDatum) {
-      await at("/" + T_DAG + "/" + opDatum.id, { method: "PATCH", body: JSON.stringify({ fields: f, typecast: true }) });
       opDatum.fields = { ...opDatum.fields, ...f };
     } else {
-      // De nieuwe dag meteen aan de lijst toevoegen. Voor sommige draaidagen staat er
-      // meer dan een callsheet in de map (bijvoorbeeld een aparte versie voor een
-      // kindacteur). Zonder deze regel maakt de tweede daar een tweede draaidag van.
-      const nieuwRec: any = await at("/" + T_DAG, { method: "POST", body: JSON.stringify({ fields: f, typecast: true }) });
-      bestaand.push({ id: nieuwRec.id, fields: f });
+      const rec = (antwoord && antwoord.records ? antwoord.records : [])[0];
+      bestaand.push({ id: rec ? rec.id : "", fields: f });
     }
     gedaan.push(b.name + " -> " + p.datum);
     if (p.meldingen.length) gemeld.push(b.name + ": " + p.meldingen.join("; "));
