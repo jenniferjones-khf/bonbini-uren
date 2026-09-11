@@ -287,7 +287,7 @@ function telling() {
   const langs = new Set(data.reacties.filter((r) => r.advies === "Langs gaan").map((r) => r.kandidaat));
   const gezien = new Set(data.reacties.map((r) => r.kandidaat));
   const mensen = new Set(data.reacties.map((r) => (r.wie || "").toLowerCase()).filter(Boolean));
-  const scenes = data.decors.reduce((a, d) => a + (d.scenes || 0), 0);
+  const scenes = new Set((data.planning || []).map((p) => String(p.scene || "").replace(/[A-Za-z]+$/, "")).filter(Boolean)).size;
   document.getElementById("telling").innerHTML =
     "<div><b>" + data.kandidaten.length + "</b><span>opties</span></div>" +
     "<div><b>" + gezien.size + "</b><span>met reactie</span></div>" +
