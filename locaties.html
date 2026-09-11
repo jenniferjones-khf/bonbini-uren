@@ -632,7 +632,7 @@ if (!code) {
 
   /* De scenes van de decors waar deze stop voor in beeld is, per draaidag. */
   function scenesVoor(decors) {
-    if (!decors.length || !window.data || !data.planning) return "";
+    if (!decors.length || typeof data === "undefined" || !data || !data.planning) return "";
     var rijen = data.planning.filter(function (p) { return decors.indexOf(p.decor) > -1; });
     if (!rijen.length) return "";
     var perDag = [];
