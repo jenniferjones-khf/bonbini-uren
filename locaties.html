@@ -733,7 +733,7 @@ if (!code) {
       var m = L.marker([s[5], s[6]], { icon: icoon }).addTo(kaart);
       m.bindPopup("<b>" + ont(s[3] || s[2]) + "</b><br>" + ont(s[1]) + "<br>" + ont(s[4]) +
         '<br><a href="' + maps(s[5] + "," + s[6]) + '" target="_blank" rel="noopener">open in Google Maps</a>');
-      punten.push([s[5], s[6]]);
+      if (bezoek) punten.push([s[5], s[6]]);
     });
     if (punten.length) kaart.fitBounds(punten, { padding: [30, 30] });
     setTimeout(function () { kaart.invalidateSize(); }, 150);
