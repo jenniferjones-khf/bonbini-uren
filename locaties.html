@@ -644,7 +644,7 @@ if (!code) {
     rijen.forEach(function (r) { uniek[String(r.scene).replace(/[A-Za-z]+$/, "")] = 1; });
     var n = Object.keys(uniek).length;
     return '<div class="planregel"><b>' + n + (n === 1 ? " scene" : " scenes") + "</b> in " + ont(decors.join(" en ")) +
-      " <i>ga op een scene staan om te lezen waar die over gaat</i>" +
+      " <i>klik op een scenenummer voor de tekst</i>" +
       perDag.map(function (d) {
         return '<span class="dagrij"><span class="dagnaam' + (d.dag ? "" : " nogniet") + '">' +
           ont(d.dag ? "Draaidag " + d.dag : "Nog niet ingepland") +
@@ -827,6 +827,271 @@ if (!code) {
   else start();
 })();
 
+</script>
+<!-- Tabblad Scenes: zoeken en de scenetekst lezen, 12 september 2026.
+     Tekst uit het dialoogscript van 1 september, veld Scripttekst in de Sceneplanning. -->
+<script>
+(function () {
+  /* Tabblad Scenes: zoeken in de scenes en de scenetekst lezen.
+     De tekst komt uit het dialoogscript van 1 september 2026 en staat per planningregel
+     in Airtable in het veld Scripttekst. Opmaak van dat veld:
+     eerste regel "@scriptnummer|scenekop", daarna per regel A|actie, C|personage,
+     D|dialoog, P|parenthetical, S|shot, T|transition. */
+
+  function ont(t) {
+    return String(t == null ? "" : t)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  function planning() {
+    try { return (data && data.planning) || []; } catch (e) { return []; }
+  }
+
+  function rijVan(label) {
+    var p = planning();
+    for (var i = 0; i < p.length; i++) if (String(p[i].scene) === String(label)) return p[i];
+    return null;
+  }
+
+  /* Het Scripttekst-veld uitpakken naar kop, scriptnummer en regels. */
+  function pakUit(ruw) {
+    if (!ruw) return null;
+    var regels = String(ruw).split("\n");
+    var kop = "", nr = "";
+    if (regels[0].charAt(0) === "@") {
+      var eerste = regels.shift().slice(1).split("|");
+      nr = eerste.shift();
+      kop = eerste.join("|");
+    }
+    return {
+      nr: nr,
+      kop: kop,
+      regels: regels.map(function (r) {
+        var i = r.indexOf("|");
+        return i < 0 ? { t: "A", x: r } : { t: r.slice(0, i), x: r.slice(i + 1) };
+      }).filter(function (r) { return r.x !== ""; })
+    };
+  }
+
+  function tekstHtml(s) {
+    if (!s) return "";
+    var h = "";
+    s.regels.forEach(function (r) {
+      if (r.t === "C") h += '<p class="scpers">' + ont(r.x) + "</p>";
+      else if (r.t === "D") h += '<p class="scdlg">' + ont(r.x) + "</p>";
+      else if (r.t === "P") h += '<p class="scpar">' + ont(r.x) + "</p>";
+      else if (r.t === "S" || r.t === "T") h += '<p class="scshot">' + ont(r.x) + "</p>";
+      else h += '<p class="scactie">' + ont(r.x) + "</p>";
+    });
+    return h;
+  }
+
+  /* Alle regels van dezelfde basisscene, zodat 73A tot en met 73F bij elkaar staan. */
+  function basis(label) {
+    return String(label).replace(/[A-Za-z]+$/, "");
+  }
+
+  function kopregel(p) {
+    var d = [];
+    if (p.intext) d.push(p.intext);
+    if (p.dagdeel) d.push(p.dagdeel);
+    if (p.set) d.push(p.set);
+    return d.join(" &middot; ");
+  }
+
+  function dagregel(p) {
+    if (!p.dag) return "Nog niet ingepland";
+    var s = "Draaidag " + p.dag;
+    if (p.datum) { try { s += " &middot; " + kortDatum(p.datum); } catch (e) {} }
+    if (p.blok) s += " &middot; " + p.blok;
+    return s;
+  }
+
+  function sluit() {
+    var v = document.getElementById("scpaneel");
+    if (v) v.parentNode.removeChild(v);
+    document.body.style.overflow = "";
+  }
+
+  function toonScene(label) {
+    var p = rijVan(label);
+    if (!p) return;
+    var b = basis(label);
+    var groep = planning().filter(function (x) { return basis(x.scene) === b; });
+    var s = pakUit(p.scripttekst);
+
+    var h = '<div class="scvak" role="dialog">' +
+      '<button type="button" class="scdicht" aria-label="Sluiten">&times;</button>' +
+      '<div class="sckop"><span class="scnr">Scene ' + ont(label) + "</span>" +
+      (s && s.nr && s.nr !== b ? '<span class="scafwijk">in het script scene ' + ont(s.nr) + "</span>" : "") +
+      "</div>" +
+      '<p class="scmeta">' + kopregel(p) + "</p>" +
+      '<p class="scmeta">' + dagregel(p) +
+      (p.paginas ? " &middot; " + ont(p.paginas) + " pag." : "") +
+      (p.figuratie ? " &middot; " + ont(p.figuratie) + " figuratie" : "") + "</p>" +
+      (p.decor ? '<p class="scmeta">Decor: ' + ont(p.decor) + "</p>" : "") +
+      (p.waarover ? '<p class="scover">' + ont(p.waarover) + "</p>" : "");
+
+    if (groep.length > 1) {
+      h += '<p class="scmeta">Deze scene is in de planning opgeknipt in ' +
+        groep.map(function (x) { return ont(x.scene); }).join(", ") +
+        ". De tekst hieronder is die van de hele scene.</p>";
+    }
+
+    h += '<div class="sctekst">';
+    if (s) {
+      h += '<p class="sckopscene">' + ont(s.kop) + "</p>" + tekstHtml(s);
+      h += '<p class="scbron">Dialoogscript 1 september 2026. De nummering in het script loopt niet gelijk met de planning; ' +
+        "de koppeling is op volgorde gelegd.</p>";
+    } else {
+      h += '<p class="scbron">Deze scene staat niet in het dialoogscript van 1 september. ' +
+        "Dat geldt voor de planningscenes 16, 29, 35, 49 en 85.</p>";
+    }
+    h += "</div></div>";
+
+    var vak = document.createElement("div");
+    vak.id = "scpaneel";
+    vak.className = "scpaneel";
+    vak.innerHTML = h;
+    vak.addEventListener("click", function (e) {
+      if (e.target === vak || (e.target.className === "scdicht")) sluit();
+    });
+    document.body.appendChild(vak);
+    document.body.style.overflow = "hidden";
+  }
+
+  /* Zoeken */
+  function treffers(vraag) {
+    var q = vraag.trim().toLowerCase();
+    var p = planning();
+    if (!q) return p;
+    return p.filter(function (x) {
+      var hooi = [x.scene, x.set, x.decor, x.waarover, x.dag ? "draaidag " + x.dag : "", x.blok, x.intext, x.dagdeel, x.scripttekst]
+        .join(" ").toLowerCase();
+      return hooi.indexOf(q) > -1;
+    });
+  }
+
+  function lijst(rijen) {
+    if (!rijen.length) return '<p class="planregel">Niets gevonden.</p>';
+    return '<div class="sclijst">' + rijen.map(function (p) {
+      return '<button type="button" class="scrij" data-scene="' + ont(p.scene) + '">' +
+        '<span class="scrijnr">' + ont(p.scene) + "</span>" +
+        '<span class="scrijmid"><span class="scrijset">' + kopregel(p) + "</span>" +
+        (p.waarover ? '<span class="scrijover">' + ont(p.waarover) + "</span>" : "") + "</span>" +
+        '<span class="scrijdag">' + dagregel(p) + "</span>" +
+        "</button>";
+    }).join("") + "</div>";
+  }
+
+  function bouw(vraag) {
+    var p = planning();
+    var uniek = {};
+    p.forEach(function (x) { uniek[basis(x.scene)] = 1; });
+    var zonder = p.filter(function (x) { return !x.scripttekst; }).length;
+    return '<div class="melding" style="margin-bottom:16px">' +
+      "Zoek op scenenummer, decor, set, draaidag of op een stuk tekst uit de scene. " +
+      "Klik op een scene om de tekst te lezen. " +
+      Object.keys(uniek).length + " scenes in " + p.length + " planningregels" +
+      (zonder ? ", " + zonder + " regels zonder scripttekst" : "") + ".</div>" +
+      '<input id="sczoek" class="sczoek" type="search" placeholder="Zoek een scene, bijvoorbeeld Almhof, 74, of een zin uit de dialoog" value="' + ont(vraag || "") + '">' +
+      '<div id="scuit">' + lijst(treffers(vraag || "")) + "</div>";
+  }
+
+  function stijl() {
+    if (document.getElementById("scstijl")) return;
+    var s = document.createElement("style");
+    s.id = "scstijl";
+    s.textContent =
+      ".sc{cursor:pointer}" +
+      ".sczoek{width:100%;box-sizing:border-box;padding:12px 14px;margin:0 0 16px;border:1px solid var(--lijn);" +
+      "border-radius:var(--radius);background:var(--vlak);color:var(--tekst);font:400 15px var(--body)}" +
+      ".sclijst{display:flex;flex-direction:column}" +
+      ".scrij{display:flex;gap:14px;align-items:baseline;width:100%;text-align:left;background:none;border:0;" +
+      "border-top:1px solid var(--lijn);padding:10px 4px;cursor:pointer;color:var(--tekst);font:inherit}" +
+      ".scrij:hover{background:var(--vlak2)}" +
+      ".scrijnr{font:600 13px var(--mono);min-width:48px;color:var(--accent)}" +
+      ".scrijmid{flex:1;min-width:0}" +
+      ".scrijset{display:block;font:500 13px var(--mono);color:var(--zacht)}" +
+      ".scrijover{display:block;font:400 14px var(--body);margin-top:2px}" +
+      ".scrijdag{font:400 12px var(--mono);color:var(--zacht2);white-space:nowrap}" +
+      ".scpaneel{position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:9999;" +
+      "display:flex;align-items:flex-end;justify-content:center}" +
+      ".scvak{position:relative;background:var(--vlak);color:var(--tekst);width:100%;max-width:720px;max-height:86vh;" +
+      "overflow:auto;border-radius:14px 14px 0 0;padding:20px 18px 32px;box-shadow:0 -4px 24px rgba(0,0,0,.25)}" +
+      ".scdicht{position:absolute;top:10px;right:12px;border:0;background:none;font-size:26px;line-height:1;" +
+      "cursor:pointer;color:var(--zacht)}" +
+      ".sckop{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;padding-right:30px}" +
+      ".scnr{font:700 20px var(--display)}" +
+      ".scafwijk{font:400 12px var(--mono);color:var(--zacht2)}" +
+      ".scmeta{font:400 12.5px var(--mono);color:var(--zacht);margin:4px 0 0}" +
+      ".scover{margin:10px 0 0;font:400 15px var(--body)}" +
+      ".sctekst{margin-top:18px;border-top:1px solid var(--lijn);padding-top:14px}" +
+      ".sckopscene{font:600 13px var(--mono);text-transform:uppercase;letter-spacing:.04em;margin:0 0 12px}" +
+      ".scactie{margin:0 0 10px;font:400 15px var(--body);line-height:1.5}" +
+      ".scpers{margin:14px 0 0;font:600 13px var(--mono);text-transform:uppercase;letter-spacing:.05em;padding-left:18%}" +
+      ".scdlg{margin:2px 0 0;font:400 15px var(--body);line-height:1.45;padding-left:12%;padding-right:10%}" +
+      ".scpar{margin:2px 0 0;font:italic 400 13px var(--body);color:var(--zacht);padding-left:15%}" +
+      ".scshot{margin:10px 0;font:600 12px var(--mono);text-transform:uppercase;color:var(--zacht)}" +
+      ".scbron{margin:18px 0 0;font:400 12px var(--mono);color:var(--zacht2)}" +
+      "@media(max-width:560px){.scrij{flex-wrap:wrap;gap:4px}.scrijdag{width:100%}" +
+      ".scpers{padding-left:8%}.scdlg{padding-left:4%;padding-right:0}.scpar{padding-left:6%}}";
+    document.head.appendChild(s);
+  }
+
+  function start() {
+    var rij = document.querySelector(".pillen");
+    var inhoud = document.getElementById("inhoud");
+    if (!rij || !inhoud) return;
+    if (rij.querySelector("[data-scenes]")) return;
+    stijl();
+
+    var knop = document.createElement("button");
+    knop.type = "button";
+    knop.className = "pil";
+    knop.setAttribute("data-scenes", "1");
+    knop.textContent = "Scenes";
+    rij.appendChild(knop);
+
+    knop.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var pillen = rij.querySelectorAll(".pil");
+      for (var i = 0; i < pillen.length; i++) pillen[i].classList.remove("aan");
+      knop.classList.add("aan");
+      inhoud.className = "";
+      inhoud.innerHTML = bouw("");
+      var veld = document.getElementById("sczoek");
+      if (veld) {
+        veld.addEventListener("input", function () {
+          var uit = document.getElementById("scuit");
+          if (uit) uit.innerHTML = lijst(treffers(veld.value));
+        });
+      }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }, true);
+
+    rij.addEventListener("click", function (e) {
+      var p = e.target.closest ? e.target.closest(".pil") : null;
+      if (p && p !== knop) knop.classList.remove("aan");
+    });
+
+    /* Overal klikbaar: de scenenummers op elk tabblad en de regels in de zoeklijst. */
+    document.addEventListener("click", function (e) {
+      if (!e.target.closest) return;
+      var chip = e.target.closest(".sc");
+      if (chip && !e.target.closest(".scpaneel")) { toonScene(chip.textContent.trim()); return; }
+      var r = e.target.closest(".scrij");
+      if (r) toonScene(r.getAttribute("data-scene"));
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") sluit();
+    });
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
+  else start();
+})();
 </script>
 </body>
 </html>
