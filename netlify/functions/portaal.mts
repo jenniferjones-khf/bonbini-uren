@@ -152,7 +152,12 @@ const RS = {
   kmPersonen: 0.25,
   kmMateriaal: 0.32,
   lunchVast: 45,
-  geplandePerBlok: { NL: 21, OOS: 7 },
+  // Vrije nachten en zondagen worden productiebreed geteld, niet per blok. Zo staat het
+  // in de crewafspraken. Dit is het geplande aantal draaidagen van de hele productie.
+  geplandeDraaidagen: 28,
+  // De dagprijs dekt twee uur reistijd. Is de draaidag korter dan de normdag van 10:15,
+  // dan gaat de vergoeding pas in boven 12:15 aan draaidag en reistijd samen.
+  reistijdDrempelTotaalUren: 12.25,
 };
 
 // ---------------------------------------------------------------- Airtable
@@ -227,6 +232,15 @@ function reisurenUit(r: any) {
   return r2(reisSpan(r.reisHeenVertrek, aankomstSet) + reisSpan(vertrekSet, r.reisTerugThuis));
 }
 
+// Hoeveel reisuren er die dag in de dagprijs zitten. Normaal twee. Bij een draaidag die
+// korter is dan de normdag schuift de grens mee, zodat de vergoeding pas ingaat boven
+// 12:15 aan draaidag en reistijd samen. Bij een volle draaidag komt dat op precies
+// dezelfde twee uur uit, dus voor een normale dag verandert er niets.
+function vrijeReisUren(start: number | null, eind: number | null, onset: number) {
+  if (start == null || eind == null) return RS.reistijdVrijUren;
+  return Math.max(RS.reistijdVrijUren, RS.reistijdDrempelTotaalUren - onset / 60);
+}
+
 function berekenDag(inp: any) {
   const D = getal(inp.dagprijs), uur = D / 10;
   // Wie op maandfee zit valt buiten de overurenregeling. Voor die mensen rekenen we
@@ -269,7 +283,7 @@ function berekenDag(inp: any) {
   const R = Math.max(0, getal(inp.reisuren));
   const reE = inp.groot
     ? (RS.grootMateriaalReisPct / 100) * uur * R
-    : (RS.reistijdOtPct / 100) * uur * Math.max(0, R - RS.reistijdVrijUren);
+    : (RS.reistijdOtPct / 100) * uur * Math.max(0, R - vrijeReisUren(start, eind, onset));
   const zoE = inp.zondag ? ((RS.zondagPct - 100) / 100) * D : 0;
   const kmB = Math.max(0, getal(inp.km)) * (getal(inp.kmTarief) || RS.kmPersonen);
   return {
@@ -319,26 +333,25 @@ function isoWeek(ds: string) {
   return { week, jaar: d.getUTCFullYear() };
 }
 
-// Nachten en zondagen die al in de dagprijs zitten: 10 procent van de geplande
-// draaidagen per blok, productiebreed, de eerste zoveel kalenderdata van dat blok.
+// Nachten en zondagen die al in de dagprijs zitten: 10 procent van het geplande aantal
+// draaidagen van de HELE productie, niet per blok. Zo staat het in de crewafspraken:
+// vrije nachten en zondagen worden productiebreed geteld. De eerste zoveel kalenderdata
+// van de productie zitten in de dagprijs, ongeacht in welk land die dag valt.
 function inbegrepenData(dagen: any[], soort: "nacht" | "zondag") {
-  const perBlok: Record<string, string[]> = {};
-  dagen
+  const lijst = dagen
     .filter((d) => (soort === "nacht" ? d.nacht : d.zondag))
     .sort((a, b) => (a.datum < b.datum ? -1 : 1))
-    .forEach((d) => {
-      const b = d.blok || "NL";
-      (perBlok[b] = perBlok[b] || []).push(d.datum);
-    });
+    .map((d) => d.datum);
+
+  const pct = soort === "nacht" ? RS.vrijeNachtenPct : RS.zondagVrijPct;
+  const q = Math.round((pct / 100) * RS.geplandeDraaidagen);
+
   const uit: Record<string, boolean> = {};
-  const quota: Record<string, number> = {};
-  Object.keys(perBlok).forEach((b) => {
-    const pct = soort === "nacht" ? RS.vrijeNachtenPct : RS.zondagVrijPct;
-    const q = Math.round((pct / 100) * ((RS.geplandePerBlok as any)[b] || 0));
-    quota[b] = q;
-    perBlok[b].slice(0, q).forEach((dt) => (uit[dt] = true));
-  });
-  return { data: uit, quota, perBlok };
+  lijst.slice(0, q).forEach((dt) => (uit[dt] = true));
+
+  // De vorm blijft een groep met een quotum, zodat het portaal zijn teller kan blijven
+  // tonen. Er is er nu nog maar een: de hele productie.
+  return { data: uit, quota: { productie: q }, perBlok: { productie: lijst } };
 }
 
 // ---------------------------------------------------------------- ophalen
