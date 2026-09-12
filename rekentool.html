@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Rekentool uren — Bon Bini</title>
+<style>
+  :root{
+    --inkt:#12141a; --lijn2:#e3e6ec; --papier:#f6f7f9; --wit:#ffffff;
+    --grijs:#6b7280; --groen:#0f7b52; --groen-l:#e6f4ee;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--papier); color:var(--inkt);
+    font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+    padding-bottom:60px;
+  }
+  .wrap{max-width:700px;margin:0 auto;padding:0 16px}
+  header{background:var(--inkt);color:#fff;padding:20px 0 18px}
+  .prod{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#8c93a3;margin:0 0 6px}
+  h1{font-size:21px;margin:0;font-weight:650;letter-spacing:-.01em}
+  header .sub{color:#aeb5c2;font-size:13px;margin-top:4px}
+  h2{font-size:13px;margin:22px 0 8px;font-weight:650;letter-spacing:.02em;color:var(--grijs);text-transform:uppercase}
+  .kaart{background:var(--wit);border:1px solid var(--lijn2);border-radius:11px;padding:6px 16px;margin-bottom:10px}
+  .veld{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--lijn2)}
+  .veld:last-child{border-bottom:0}
+  .veld label{flex:1;font-size:14.5px}
+  .veld .hint{display:block;color:var(--grijs);font-size:12.5px;margin-top:1px}
+  .veld input[type=text]{width:108px;font:inherit;font-size:15px;padding:7px 9px;border:1px solid #d8dae0;
+    border-radius:8px;text-align:right;background:var(--wit);color:var(--inkt)}
+  .veld input[type=checkbox]{width:20px;height:20px;accent-color:#12141a}
+  select{font:inherit;font-size:14.5px;padding:7px 9px;border:1px solid #d8dae0;border-radius:8px;background:var(--wit);color:var(--inkt)}
+  .r{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--lijn2);font-size:14.5px}
+  .r:last-child{border-bottom:0}
+  .r span:last-child{font-variant-numeric:tabular-nums;white-space:nowrap}
+  .r.nul{color:var(--grijs)}
+  .r.tot{font-weight:700;border-top:2px solid var(--inkt);border-bottom:0;padding-top:11px;margin-top:4px;font-size:16px}
+  .melding{background:var(--groen-l);border-radius:9px;padding:10px 13px;font-size:13.5px;margin-top:10px}
+  .voet{color:var(--grijs);font-size:12.5px;margin-top:26px;border-top:1px solid var(--lijn2);padding-top:14px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <p class="prod">Bon Bini, Jetzt Geht's Los</p>
+    <h1>Rekentool uren</h1>
+    <div class="sub">Vul een dag in en zie wat die bovenop de dagprijs oplevert</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <h2>De dag</h2>
+  <div class="kaart">
+    <div class="veld"><label>Dagprijs<span class="hint">Exclusief btw</span></label><input type="text" id="dagprijs" value="500" inputmode="decimal"></div>
+    <div class="veld"><label>Call<span class="hint">24-uurs, dus 07:00</span></label><input type="text" id="start" value="07:00"></div>
+    <div class="veld"><label>Wrap<span class="hint">Loopt de dag door na middernacht, vul gewoon 01:30 in</span></label><input type="text" id="eind" value="18:00"></div>
+  </div>
+
+  <h2>Reizen</h2>
+  <div class="kaart">
+    <div class="veld"><label>Reisuren die dag<span class="hint">Heen en terug samen, vanaf standplaats</span></label><input type="text" id="reisuren" value="0" inputmode="decimal"></div>
+    <div class="veld"><label>Kilometers<span class="hint">Heen en terug samen</span></label><input type="text" id="km" value="0" inputmode="decimal"></div>
+    <div class="veld"><label>Tarief per kilometer</label>
+      <select id="kmtarief">
+        <option value="0.25">0,25 eigen auto</option>
+        <option value="0.32">0,32 met materiaal</option>
+        <option value="0">geen, meegereden of OV</option>
+      </select>
+    </div>
+    <div class="veld"><label>Parkeerkosten</label><input type="text" id="parkeer" value="0" inputmode="decimal"></div>
+    <div class="veld"><label>Bestuurder materiaalwagen<span class="hint">Dan tellen alle reisuren tegen 100 procent</span></label><input type="checkbox" id="groot"></div>
+  </div>
+
+  <h2>Toeslagen die niet altijd gelden</h2>
+  <div class="kaart">
+    <div class="veld"><label>Nachtshoot met toeslag<span class="hint">Alleen aanvinken als deze nachtdag buiten de eerste 3 van de productie valt</span></label><input type="checkbox" id="nacht"></div>
+    <div class="veld"><label>Zondag of feestdag met toeslag<span class="hint">Alleen aanvinken als deze dag buiten de eerste 3 van de productie valt</span></label><input type="checkbox" id="zondag"></div>
+    <div class="veld"><label>Turnaroundtekort in uren<span class="hint">Rust korter dan 10 uur, of 58 in het weekend</span></label><input type="text" id="ta" value="0" inputmode="decimal"></div>
+  </div>
+
+  <h2>Wat deze dag oplevert</h2>
+  <div class="kaart" id="uit"></div>
+
+  <div class="voet">
+    Deze tool rekent met dezelfde regels als het urenportaal. Hij slaat niets op en stuurt niets door; wat je hier invult blijft op je eigen scherm.<br>
+    Bij verschil met de crewafspraken bij je overeenkomst gelden die afspraken. Versie 12 september 2026.
+  </div>
+
+</div>
+
+<script>
+/* De regels van de productie. Deze waarden moeten gelijk lopen met het blok RS in
+   netlify/functions/portaal.mts. Wijzigt daar iets, wijzig het hier ook. */
+var RS = {
+  dagdrempelUren: 9.5,
+  otTier1Pct: 150,
+  otTier2Pct: 200,
+  otTier1MaxUren: 4,
+  reistijdVrijUren: 2,
+  reistijdOtPct: 150,
+  reistijdDrempelTotaalUren: 12.25,
+  grootMateriaalReisPct: 100,
+  nachtStartMin: 0,
+  nachtEindMin: 360,
+  nachtPct: 150,
+  zondagPct: 150,
+  turnaroundPct: 150,
+  lunchVast: 45
+};
+
+function pt(t){var m=/^(\d{1,2})[:.](\d{2})$/.exec(String(t||'').trim());return m?(+m[1])*60+(+m[2]):null;}
+function isNacht(c){c=((c%1440)+1440)%1440;return c>=RS.nachtStartMin&&c<RS.nachtEindMin;}
+function r2(n){return Math.round(n*100)/100;}
+function eur(n){return '€ ' + (n||0).toLocaleString('nl-NL',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function u(n){return (n||0).toLocaleString('nl-NL',{minimumFractionDigits:2,maximumFractionDigits:2})+' u';}
+function getal(x){
+  if(x==null||x==='') return 0;
+  var s=String(x).trim().replace(/[^0-9.,\-]/g,'');
+  if(s.indexOf(',')>-1) s=s.replace(/\./g,'').replace(',','.');
+  var n=parseFloat(s);
+  return isNaN(n)?0:n;
+}
+function v(id){ return document.getElementById(id).value; }
+function aan(id){ return document.getElementById(id).checked; }
+
+/* Hoeveel reisuren er die dag in de dagprijs zitten. Normaal twee. Is de draaidag korter
+   dan de normdag van 10:15, dan schuift die grens mee, zodat de vergoeding pas ingaat
+   boven 12:15 aan draaidag en reistijd samen. */
+function vrijeReisUren(start,eind,onset){
+  if(start==null||eind==null) return RS.reistijdVrijUren;
+  return Math.max(RS.reistijdVrijUren, RS.reistijdDrempelTotaalUren - onset/60);
+}
+
+function reken(){
+  var D=getal(v('dagprijs')), uur=D/10;
+  var start=pt(v('start')), eind=pt(v('eind'));
+  var onset=0, nO=0;
+  if(start!=null&&eind!=null){
+    if(eind<=start) eind+=1440;
+    onset=eind-start;
+    for(var m=start;m<eind;m++) if(isNacht(m)) nO++;
+  }
+  /* De lunch staat vast op 45 minuten en gaat er eerst af bij de daguren. */
+  var p=RS.lunchVast, dagOnset=onset-nO;
+  var pD=Math.min(p,Math.max(0,dagOnset)), pN=Math.max(0,p-pD);
+  var nachtW=Math.max(0,nO-pN);
+  var sD=pD, sN=pN, w=[];
+  if(start!=null&&eind!=null){
+    for(var m2=start;m2<eind;m2++){
+      var n=isNacht(m2);
+      if(!n&&sD>0){sD--;continue;}
+      if(n&&sN>0){sN--;continue;}
+      w.push(n);
+    }
+  }
+  /* Geen stapeling: is een uur al overuur, dan krijgt het geen nachttoeslag erbovenop. */
+  var dm=RS.dagdrempelUren*60, t1=RS.otTier1MaxUren*60;
+  var otE=0, naE=0, otMin=0, naMin=0;
+  var nachtAan=aan('nacht');
+  for(var i=0;i<w.length;i++){
+    if(i>=dm){
+      var k=i-dm;
+      otE+=((k<t1?RS.otTier1Pct:RS.otTier2Pct)/100)*uur/60;
+      otMin++;
+    } else if(w[i]&&nachtAan){
+      naE+=((RS.nachtPct-100)/100)*uur/60;
+      naMin++;
+    }
+  }
+  var R=Math.max(0,getal(v('reisuren')));
+  var vrijU=vrijeReisUren(start,eind,onset);
+  var reE = aan('groot')
+    ? (RS.grootMateriaalReisPct/100)*uur*R
+    : (RS.reistijdOtPct/100)*uur*Math.max(0,R-vrijU);
+  var zoE = aan('zondag') ? ((RS.zondagPct-100)/100)*D : 0;
+  var taU = Math.max(0,getal(v('ta')));
+  var taE = Math.ceil(taU*4)/4*(RS.turnaroundPct/100)*uur;
+  var kmB = Math.max(0,getal(v('km')))*parseFloat(v('kmtarief'));
+  var park = Math.max(0,getal(v('parkeer')));
+
+  var rij=[];
+  function toon(naam, bedrag, bij){
+    rij.push('<div class="r'+(bedrag?'':' nul')+'"><span>'+naam+(bij?' <span style="color:#6b7280">'+bij+'</span>':'')+'</span><span>'+eur(bedrag)+'</span></div>');
+  }
+  rij.push('<div class="r"><span>Gewerkte uren <span style="color:#6b7280">lunch van 45 minuten er al af</span></span><span>'+u(r2(w.length/60))+'</span></div>');
+  toon('Overuren', r2(otE), otMin? u(r2(otMin/60)):'');
+  toon('Nachturen', r2(naE), naMin? u(r2(naMin/60)):'');
+  toon('Reisuren', r2(reE), R? u(r2(R))+', waarvan '+u(r2(Math.min(R,vrijU)))+' in de dagprijs':'');
+  toon('Turnaround', r2(taE), taU? u(r2(Math.ceil(taU*4)/4)):'');
+  toon('Zondag of feestdag', r2(zoE), '');
+  toon('Kilometers', r2(kmB), '');
+  toon('Parkeerkosten', r2(park), '');
+  var totaal = r2(otE+naE+reE+taE+zoE+kmB+park);
+  rij.push('<div class="r tot"><span>Bovenop je dagprijs</span><span>'+eur(totaal)+'</span></div>');
+
+  var uitleg='';
+  if(start==null||eind==null){
+    uitleg='<div class="melding">Vul call en wrap in als 07:00, met een dubbele punt, anders kan de tool de dag niet uitrekenen.</div>';
+  } else if(vrijU>RS.reistijdVrijUren){
+    uitleg='<div class="melding">Deze draaidag is korter dan 10:15. Daarom gaat de reistijdvergoeding pas in boven '+
+           u(r2(vrijU))+' reistijd, zodat draaidag en reistijd samen op 12:15 uitkomen.</div>';
+  }
+  document.getElementById('uit').innerHTML=rij.join('');
+  var oud=document.getElementById('extra'); if(oud) oud.remove();
+  if(uitleg) document.getElementById('uit').insertAdjacentHTML('afterend','<div id="extra">'+uitleg+'</div>');
+}
+
+['dagprijs','start','eind','reisuren','km','kmtarief','parkeer','groot','nacht','zondag','ta'].forEach(function(id){
+  var el=document.getElementById(id);
+  el.addEventListener('input', reken);
+  el.addEventListener('change', reken);
+});
+reken();
+</script>
+
+</body>
+</html>
