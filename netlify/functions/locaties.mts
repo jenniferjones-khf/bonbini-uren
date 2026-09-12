@@ -56,6 +56,7 @@ const P = {
   waarover: "fldOZCBYRXpDTwo9f",
   paginas: "fldqOEKQi4n5UvaOU",
   figuratie: "fld0C6SNwH7dMeVjm",
+  scripttekst: "fldGXbXis2DAgsip9",
 };
 
 const R = {
@@ -200,6 +201,7 @@ async function lijst() {
         waarover: r.fields[P.waarover] || "",
         paginas: r.fields[P.paginas] || "",
         figuratie: r.fields[P.figuratie] || 0,
+        scripttekst: r.fields[P.scripttekst] || "",
       }))
       .sort((a: any, b: any) => {
         if (!a.datum !== !b.datum) return a.datum ? -1 : 1; // nog niet ingepland onderaan
