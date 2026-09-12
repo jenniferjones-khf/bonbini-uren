@@ -323,6 +323,15 @@ function reisFouten(d){
   return uit;
 }
 
+/* Hoeveel reisuren er die dag in de dagprijs zitten. Normaal twee. Is de draaidag korter
+   dan de normdag van 10:15, dan schuift die grens mee, zodat de vergoeding pas ingaat
+   boven 12:15 aan draaidag en reistijd samen. Bij een volle draaidag komt dat op precies
+   dezelfde twee uur uit. */
+function vrijeReisUren(start,eind,onset){
+  if(start==null||eind==null) return RS.reistijdVrijUren;
+  return Math.max(RS.reistijdVrijUren,(RS.reistijdDrempelTotaalUren||12.25)-onset/60);
+}
+
 function berekenDag(inp){
   var D=getal(inp.dagprijs), uur=D/10;
   var start=pt(inp.start), eind=pt(inp.eind);
@@ -359,7 +368,7 @@ function berekenDag(inp){
   var R=Math.max(0,getal(inp.reisuren));
   var reE = inp.groot
     ? (RS.grootMateriaalReisPct/100)*uur*R
-    : (RS.reistijdOtPct/100)*uur*Math.max(0,R-RS.reistijdVrijUren);
+    : (RS.reistijdOtPct/100)*uur*Math.max(0,R-vrijeReisUren(start,eind,onset));
   var zoE = inp.zondag ? ((RS.zondagPct-100)/100)*D : 0;
   var kmB = Math.max(0,getal(inp.km))*(getal(inp.kmTarief)||RS.kmPersonen);
   return {uur:uur, gewerkteUren:r2(w.length/60), otUren:r2(otMin/60), otE:r2(otE),
@@ -512,13 +521,13 @@ function tellerHtml(){
       var enkel=s[4], meer=s[5];
       var tekst;
       if(q===0){
-        tekst='Blok '+blok+' heeft '+lijst.length+' '+(lijst.length===1?enkel:meer)+
+        tekst='De productie heeft '+lijst.length+' '+(lijst.length===1?enkel:meer)+
               '. Daarover krijg je allemaal toeslag.';
       } else if(lijst.length<=q){
-        tekst='Blok '+blok+' heeft '+lijst.length+' '+(lijst.length===1?enkel:meer)+
+        tekst='De productie heeft '+lijst.length+' '+(lijst.length===1?enkel:meer)+
               '. '+(lijst.length===1?'Die zit in je dagprijs.':'Die zitten allemaal in je dagprijs.');
       } else {
-        tekst='Blok '+blok+' heeft '+lijst.length+' '+meer+'. De eerste '+q+
+        tekst='De productie heeft '+lijst.length+' '+meer+'. De eerste '+q+
               ' '+(q===1?'zit':'zitten')+' in je dagprijs, vanaf de '+(q+1)+'e krijg je toeslag.';
       }
       uit.push('<div class="t">'+tekst+'</div>');
@@ -527,7 +536,7 @@ function tellerHtml(){
   return uit.length?'<div class="teller">'+uit.join('')+'</div>':'';
 }
 
-/* de hoeveelste nacht- of zondagdag van het blok is deze datum */
+/* de hoeveelste nacht- of zondagdag van de productie is deze datum */
 function volgnummer(datum, soort){
   var inb=DATA.inbegrepen||{};
   var perBlok = soort==='nacht'?(inb.nachtdagenPerBlok||{}):(inb.zondagenPerBlok||{});
@@ -874,14 +883,14 @@ function herbereken(datum){
   if(!otVoorMij()) h+='<div class="uitl">Je valt buiten de overurenregeling, dus er komen geen toeslagen bij. Kilometers en parkeren tellen wel mee.</div>';
   if(r.nachtVrij){
     var vn=volgnummer(datum,'nacht');
-    h+='<div class="melding vrij">Dit is nachtdag '+(vn?vn.nr:'?')+' van het blok. '+
+    h+='<div class="melding vrij">Dit is nachtdag '+(vn?vn.nr:'?')+' van de productie. '+
        (vn?'De eerste '+vn.quota+' '+(vn.quota===1?'zit':'zitten'):'De eerste zitten')+
        ' in je dagprijs, zo staat het in de crewafspraken. '+
        (vn&&vn.van>vn.quota?'Vanaf nachtdag '+(vn.quota+1)+' krijg je wel toeslag.':'')+'</div>';
   }
   if(r.zonVrij){
     var vz=volgnummer(datum,'zondag');
-    h+='<div class="melding vrij">Dit is zondag '+(vz?vz.nr:'?')+' van het blok. '+
+    h+='<div class="melding vrij">Dit is zondag '+(vz?vz.nr:'?')+' van de productie. '+
        (vz?'De eerste '+vz.quota+' '+(vz.quota===1?'zit':'zitten'):'De eerste zitten')+
        ' in je dagprijs. '+
        (vz&&vz.van>vz.quota?'Vanaf zondag '+(vz.quota+1)+' krijg je wel toeslag.':'')+'</div>';
