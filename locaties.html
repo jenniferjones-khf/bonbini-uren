@@ -662,6 +662,7 @@ if (!code) {
       '<div id="tourkaart" style="height:380px;border:1px solid var(--lijn);border-radius:var(--radius);margin-bottom:8px;background:var(--vlak2)"></div>' +
       '<div class="planregel" style="margin:0 6px 20px">Kaart en satellietbeeld van Esri, rechtsboven te wisselen. Breitlahner Alm staat bij benadering op Dornauberg; het adres is Dornauberg 70 maar dat huisnummer is op de kaart niet te vinden.</div>';
 
+    var nr = 0;
     DAGEN.forEach(function (d, di) {
       h += '<div class="tourdag">' + ont(d.dag) + "</div>";
       h += '<div class="planregel" style="margin:0 6px 12px">' + ont(d.noot) + "</div>";
@@ -669,7 +670,8 @@ if (!code) {
         var tijd = s[1], wat = s[2], plek = s[3], adres = s[4], lat = s[5], lon = s[6], bezoek = s[7], decors = s[8], kand = s[9];
         h += '<div class="tourstop" data-bezoek="' + (bezoek ? "1" : "0") + '">' +
           '<div class="tourkop"><span class="tourtijd">' + ont(tijd) + "</span>" +
-          "<span><b>" + ont(wat) + "</b>" + (plek ? " &middot; " + ont(plek) : "") +
+          "<span>" + (bezoek ? '<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#A4491C;color:#fff;font:600 12px var(--mono);margin-right:8px;vertical-align:middle">' + (++nr) + "</span>" : "") +
+          "<b>" + ont(wat) + "</b>" + (plek ? " &middot; " + ont(plek) : "") +
           (adres ? '<br><span class="touradres">' + ont(adres) +
             (lat ? ' &middot; <a href="' + maps(lat + "," + lon) + '" target="_blank" rel="noopener">open in Google Maps</a>' : "") +
             "</span>" : "") +
