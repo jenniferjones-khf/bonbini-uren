@@ -127,6 +127,18 @@
   .voet .voetlink{margin-left:10px;border:1px solid #cfd4dd;background:#fff;color:var(--inkt);
     border-radius:9px;padding:11px 14px;font-size:14px;font-weight:600;text-decoration:none;white-space:nowrap}
 
+  /* Op een smal scherm passen het weektotaal, de indienknop en de mailknop niet naast
+     elkaar. Dan valt de tekst over twee regels, wordt de balk hoger, en dekt hij het
+     onderste invulveld af. Hieronder maken we hem compacter; het echte vangnet is de
+     meting onderaan het script, die de vrije ruimte gelijk houdt aan de echte hoogte. */
+  @media (max-width:560px){
+    .voet .wrap{gap:8px}
+    .voet .sub{display:none}
+    .voet .v{font-size:17px}
+    .voet button{padding:10px 13px;font-size:13.5px}
+    .voet .voetlink{margin-left:8px;padding:10px 12px;font-size:13.5px}
+  }
+
   /* naamkiezer */
   .kies{position:fixed;inset:0;background:var(--inkt);z-index:60;display:flex;align-items:center;justify-content:center;padding:20px}
   .kies .kaart{background:var(--wit);border-radius:14px;padding:22px;max-width:400px;width:100%}
@@ -1084,6 +1096,25 @@ function bouwBanners(){
 
 
 laden();
+
+/* De voetbalk staat vast onderaan het scherm. Hoe hoog hij is hangt af van de
+   schermbreedte en van wat erin staat, dus een vaste marge onder de pagina klopt niet
+   altijd: bij een hoge balk verdwijnt het laatste invulveld eronder. Daarom meten we
+   zijn hoogte en houden we precies zoveel ruimte vrij. Opnieuw meten na elke
+   schermwijziging en na elke keer dat de pagina zichzelf opnieuw opbouwt. */
+var VOETTIMER;
+function voetRuimte(){
+  var v = document.querySelector('.voet');
+  var h = v ? v.offsetHeight : 0;
+  document.body.style.paddingBottom = (h ? h + 16 : 90) + 'px';
+}
+function voetRuimteStraks(){ clearTimeout(VOETTIMER); VOETTIMER = setTimeout(voetRuimte, 50); }
+if (window.MutationObserver) {
+  new MutationObserver(voetRuimteStraks).observe(document.body, { childList:true, subtree:true });
+}
+window.addEventListener('resize', voetRuimteStraks);
+window.addEventListener('orientationchange', voetRuimteStraks);
+voetRuimte();
 </script>
 </body>
 </html>
